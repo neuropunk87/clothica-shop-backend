@@ -30,6 +30,8 @@ Backend API for Clothica built with Node.js, Express and MongoDB.
 clothica-shop-backend/
 ├── src/
 │   ├── server.js
+│   ├── constants/
+│   │   ├── time.js
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── userController.js
@@ -37,8 +39,11 @@ clothica-shop-backend/
 │   │   ├── categoryController.js
 │   │   ├── orderController.js
 │   │   └── reviewController.js
+│   ├── db/
+│   │   ├── connectMongoDB.js
 │   ├── models/
 │   │   ├── user.js
+│   │   ├── session.js
 │   │   ├── good.js
 │   │   ├── category.js
 │   │   ├── order.js
@@ -52,16 +57,22 @@ clothica-shop-backend/
 │   │   └── reviewRoutes.js
 │   ├── services/
 │   │   └── auth.js
+│   ├── templates/
+│   │   └── reset-password-email.html
 │   ├── middleware/
 │   │   ├── authenticate.js
+│   │   ├── logger.js
 │   │   ├── errorHandler.js
 │   │   └── notFoundHandler.js
+│   │   ├── rateLimitAuth.js
+│   │   ├── rateLimitSearch.js
+│   │   └── multer.js
 │   ├── validations/
 │   │   └── authValidation.js
 │   ├── utils/
 │   │   └── ctrlWrapper.js
-│   ├── db/
-│   │   └── connectMongoDB.js
+│   │   └── saveFileToCloudinary.js
+│   │   └── sendMail.js
 │   └── constants/
 ├── config/
 │   └── swagger.js
