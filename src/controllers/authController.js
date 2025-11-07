@@ -10,16 +10,16 @@ import { Session } from '../models/session.js';
 import { sendMail } from '../utils/sendMail.js';
 
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, phone, password } = req.body;
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) throw createHttpError(400, 'Email in use');
+  const existingUser = await User.findOne({ phone });
+  if (existingUser) throw createHttpError(400, 'Phone number in use');
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = await User.create({
     name,
-    email,
+    phone,
     password: hashedPassword,
   });
 
@@ -30,9 +30,9 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { phone, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ phone });
   if (!user) throw createHttpError(401, 'User not found');
 
   const isValidPassword = await bcrypt.compare(password, user.password);
@@ -87,9 +87,9 @@ export const refreshUserSession = async (req, res) => {
 };
 
 export const requestResetEmail = async (req, res) => {
-  const { email } = req.body;
+  const { phone, email } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ phone });
   if (!user) {
     return res.status(200).json({
       message: 'Password reset email sent successfully',
@@ -105,7 +105,7 @@ export const requestResetEmail = async (req, res) => {
   const template = handlebars.compile(templateSource);
 
   const html = template({
-    name: user.username,
+    name: user.name,
     link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${jwtToken}`,
   });
 
