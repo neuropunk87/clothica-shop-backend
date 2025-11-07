@@ -87,7 +87,7 @@ export const refreshUserSession = async (req, res) => {
 };
 
 export const requestResetEmail = async (req, res) => {
-  const { phone, email } = req.body;
+  const { phone } = req.body;
 
   const user = await User.findOne({ phone });
   if (!user) {
@@ -96,9 +96,19 @@ export const requestResetEmail = async (req, res) => {
     });
   }
 
-  const jwtToken = jwt.sign({ sub: user._id, email }, process.env.JWT_SECRET, {
-    expiresIn: '15m',
-  });
+  if (user.email.trim() === '') {
+    return res.status(422).json({
+      message: 'Email cannot be empty',
+    });
+  }
+
+  const jwtToken = jwt.sign(
+    { sub: user._id, phone: user.phone },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '15m',
+    },
+  );
 
   const templatePath = path.resolve('src/templates/reset-password-email.html');
   const templateSource = await fs.readFile(templatePath, 'utf-8');
@@ -112,7 +122,7 @@ export const requestResetEmail = async (req, res) => {
   try {
     await sendMail({
       from: process.env.SMTP_FROM,
-      to: email,
+      to: user.email,
       subject: 'Reset your password',
       html,
     });
@@ -138,7 +148,7 @@ export const resetPassword = async (req, res) => {
     throw createHttpError(401, 'Invalid or expired token');
   }
 
-  const user = await User.findOne({ _id: payload.sub, email: payload.email });
+  const user = await User.findOne({ _id: payload.sub, phone: payload.phone });
   if (!user) throw createHttpError(404, 'User not found');
 
   const hashedPassword = await bcrypt.hash(password, 10);
