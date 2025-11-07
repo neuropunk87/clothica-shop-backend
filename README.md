@@ -27,7 +27,7 @@ Backend API for Clothica built with Node.js, Express and MongoDB.
 ## Project Structure
 
 ```
-project-7-backend/
+clothica-shop-backend/
 ├── src/
 │   ├── server.js
 │   ├── controllers/
@@ -85,7 +85,7 @@ project-7-backend/
 
 ```bash
 git clone <repository-url>
-cd project-7-backend
+cd clothica-shop-backend
 ```
 
 2. Install dependencies:
