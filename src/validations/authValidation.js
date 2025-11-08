@@ -23,7 +23,10 @@ export const loginUserSchema = {
 
 export const requestResetEmailSchema = {
   [Segments.BODY]: Joi.object({
-    email: Joi.string().email().required(),
+    phone: Joi.string()
+      .pattern(/^\+380\d{9}$/)
+      .max(13)
+      .required(),
   }),
 };
 
