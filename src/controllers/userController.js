@@ -83,3 +83,19 @@ export const updateUserAvatar = async (req, res) => {
 
   res.status(200).json({ url: user.avatar });
 };
+
+export const getTelegramLink = (req, res) => {
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+  if (!botUsername) {
+    throw createHttpError(500, 'Telegram bot is not configured.');
+  }
+
+  const link = `https://t.me/${botUsername}?start=${req.user._id}`;
+
+  res.status(200).json({
+    success: true,
+    data: {
+      link: link,
+    },
+  });
+};

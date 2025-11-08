@@ -11,10 +11,10 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = Router();
 
-router.get('/api/orders', authenticate, ctrlWrapper(getAllOrders));
-router.get('/api/orders/:id', authenticate, ctrlWrapper(getOrderById));
-router.post('/api/orders', authenticate, ctrlWrapper(createOrder));
-router.patch('/api/orders/:id', authenticate, ctrlWrapper(updateOrder));
-router.delete('/api/orders/:id', authenticate, ctrlWrapper(deleteOrder));
+router.get('/orders', authenticate, ctrlWrapper(getAllOrders));
+router.get('/orders/:id', authenticate, ctrlWrapper(getOrderById));
+router.post('/orders', authenticate, ctrlWrapper(createOrder));
+router.patch('/orders/:id', authenticate, ctrlWrapper(updateOrder));
+router.delete('/orders/:id', authenticate, ctrlWrapper(deleteOrder));
 
 export default router;

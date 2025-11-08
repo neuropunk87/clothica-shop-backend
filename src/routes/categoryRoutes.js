@@ -11,10 +11,10 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = Router();
 
-router.get('/api/categories', ctrlWrapper(getAllCategories));
-router.get('/api/categories/:id', ctrlWrapper(getCategoryById));
-router.post('/api/categories', authenticate, ctrlWrapper(createCategory));
-router.patch('/api/categories/:id', authenticate, ctrlWrapper(updateCategory));
-router.delete('/api/categories/:id', authenticate, ctrlWrapper(deleteCategory));
+router.get('/categories', ctrlWrapper(getAllCategories));
+router.get('/categories/:id', ctrlWrapper(getCategoryById));
+router.post('/categories', authenticate, ctrlWrapper(createCategory));
+router.patch('/categories/:id', authenticate, ctrlWrapper(updateCategory));
+router.delete('/categories/:id', authenticate, ctrlWrapper(deleteCategory));
 
 export default router;
