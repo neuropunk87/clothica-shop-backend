@@ -84,11 +84,4 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-userSchema.pre('save', function (next) {
-  if (!this.name) {
-    this.name = this.email;
-  }
-  next();
-});
-
 export const User = model('User', userSchema);

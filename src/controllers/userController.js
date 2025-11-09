@@ -1,20 +1,10 @@
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
+import { Session } from '../models/session.js';
 import {
   saveFileToCloudinary,
   deleteFileFromCloudinary,
 } from '../utils/saveFileToCloudinary.js';
-
-const secureKeys = [
-  'password',
-  'phone',
-  'role',
-  'telegramChatId',
-  'telegramUserId',
-  'telegramLinked',
-  'avatar',
-  'avatar_id',
-];
 
 export const getProfile = async (req, res) => {
   res.status(200).json({
@@ -24,46 +14,64 @@ export const getProfile = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
-  const { body } = req;
+  const allowedUpdates = ['name', 'lastname', 'city', 'branchnum_np'];
+  const updates = {};
 
-  for (const key of secureKeys) {
-    if (key in body) {
-      delete body[key];
+  for (const key of allowedUpdates) {
+    if (req.body[key] !== undefined) {
+      updates[key] = req.body[key];
     }
   }
-
-  if (Object.keys(body).length === 0) {
-    throw createHttpError(400, 'No valid fields to update');
+  if (req.body.email) {
+    throw createHttpError(
+      400,
+      'Email address cannot be changed through this endpoint',
+    );
   }
-
-  try {
-    await User.findByIdAndUpdate(req.user._id, body, { new: true });
-  } catch {
-    throw createHttpError(500, 'Error updating profile');
+  if (Object.keys(updates).length === 0) {
+    throw createHttpError(
+      400,
+      'Request body does not contain any fields to update',
+    );
   }
-
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+  });
   res.status(200).json({
     success: true,
-    message: 'Update profile endpoint',
+    message: 'Profile updated successfully',
+    data: updatedUser,
   });
 };
 
 export const deleteProfile = async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.user._id);
-  } catch {
-    throw createHttpError(500, 'Error deleting profile');
-  }
+  const { _id, avatar_id } = req.user;
 
+  if (avatar_id) {
+    await deleteFileFromCloudinary(avatar_id);
+  }
+  await Session.deleteMany({ userId: _id });
+
+  await User.findByIdAndDelete(_id);
+
+  const cookieOptions = { path: '/' };
+  res.clearCookie('sessionId', cookieOptions);
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+
+  // res.status(204).send();
   res.status(200).json({
     success: true,
-    message: 'Delete profile endpoint',
+    message: 'Profile deleted successfully',
   });
 };
 
 export const updateUserAvatar = async (req, res) => {
   if (!req.file) {
-    throw createHttpError(400, 'No file');
+    throw createHttpError(
+      400,
+      'No file uploaded. Please include an image file',
+    );
   }
 
   const result = await saveFileToCloudinary(req.file.buffer);
@@ -81,13 +89,19 @@ export const updateUserAvatar = async (req, res) => {
     { new: true },
   );
 
-  res.status(200).json({ url: user.avatar });
+  res.status(200).json({
+    success: true,
+    message: 'Avatar updated successfully',
+    data: {
+      avatar: user.avatar,
+    },
+  });
 };
 
 export const getTelegramLink = (req, res) => {
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
   if (!botUsername) {
-    throw createHttpError(500, 'Telegram bot is not configured.');
+    throw createHttpError(500, 'Telegram bot is not configured on the server');
   }
 
   const link = `https://t.me/${botUsername}?start=${req.user._id}`;
