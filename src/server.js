@@ -58,21 +58,12 @@ if (isProd) {
 
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  if (['POST'].includes(req.method)) {
-    const hasBody = req.body && Object.keys(req.body).length > 0;
-    if (!hasBody) return next(createHttpError(400, 'Body is missing'));
-  }
-  next();
-});
-
-app.use(authRoutes);
-app.use(userRoutes);
-app.use(categoryRoutes);
-app.use(goodRoutes);
-app.use(orderRoutes);
-app.use(reviewRoutes);
-app.use(feedbackRoutes);
+app.use('/api', authRoutes);
+app.use('/api', userRoutes);
+app.use('/api', categoryRoutes);
+app.use('/api', goodRoutes);
+app.use('/api', orderRoutes);
+app.use('/api', feedbackRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
