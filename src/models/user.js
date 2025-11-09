@@ -43,12 +43,13 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: false,
-      unique: false,
+      unique: true,
+      sparse: true,
       lowercase: true,
       maxlength: [64, 'Email cannot exceed 64 characters'],
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
-      default: '',
+      default: null,
     },
     avatar: {
       type: String,

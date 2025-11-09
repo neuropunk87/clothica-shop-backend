@@ -1,39 +1,35 @@
 import { Schema, model } from 'mongoose';
+import { ORDER_STATUS } from '../constants/orderStatuses.js';
 
 const orderSchema = new Schema(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    items: [
+    products: [
       {
-        good: {
-          type: Schema.Types.ObjectId,
-          ref: 'Good',
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-      },
+        productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        amount: { type: Number, required: true, min: 1 },
+        size: { type: String, required: true },
+        _id: false,
+      }
     ],
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
+
+    sum: { type: Number, required: true, min: 1 },
+
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+
+    date: { type: String, required: true },
+
+    orderNum: { type: String, required: true },
+
     status: {
       type: String,
-      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending',
+      enum: ORDER_STATUS,
+      default: "processing",
     },
+
+    userName: { type: String, required: true },
+    userLastname: { type: String, required: true },
+    userTel: { type: String, required: true },
+    postOfNum: { type: String, required: true },
   },
   {
     timestamps: true,
@@ -41,4 +37,5 @@ const orderSchema = new Schema(
   }
 );
 
-export const Order = model('Order', orderSchema);
+
+ export const Order = model('Order', orderSchema);

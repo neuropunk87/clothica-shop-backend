@@ -8,7 +8,11 @@ import {
   updateGood,
   deleteGood,
 } from '../controllers/goodController.js';
-import { getGoodsSchema, getGoodByIdSchema, createGoodSchema, updateGoodSchema,  } from '../validations/goodsValidation.js';
+import { getGoodsSchema,
+  getGoodByIdSchema,
+  createGoodSchema,
+  updateGoodSchema,
+} from '../validations/goodsValidation.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = Router();
