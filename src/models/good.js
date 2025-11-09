@@ -7,29 +7,60 @@ const goodSchema = new Schema(
       required: true,
       trim: true,
     },
-    description: {
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true,
+    },
+    image: {
       type: String,
       trim: true,
     },
     price: {
-      type: Number,
-      required: true,
-      min: 0,
+      value: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      currency: {
+        type: String,
+        default: 'грн',
+      },
     },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
+    size: [
+      {
+        type: String,
+        enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      },
+    ],
+    description: {
+      type: String,
+      trim: true,
     },
-    stock: {
-      type: Number,
-      default: 0,
-      min: 0,
+    feedbacks: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Feedback',
+      },
+    ],
+    prevDescription: {
+      type: String,
+      trim: true,
     },
+    gender: {
+      type: String,
+      enum: ['men', 'women', 'unisex', 'man'],
+    },
+    characteristics: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 export const Good = model('Good', goodSchema);

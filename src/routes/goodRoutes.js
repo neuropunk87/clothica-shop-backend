@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate } from 'celebrate';
 import { authenticate } from '../middleware/authenticate.js';
 import {
   getAllGoods,
@@ -7,14 +8,34 @@ import {
   updateGood,
   deleteGood,
 } from '../controllers/goodController.js';
+import { getGoodsSchema,
+  getGoodByIdSchema,
+  createGoodSchema,
+  updateGoodSchema,
+} from '../validations/goodsValidation.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = Router();
 
-router.get('/api/goods', ctrlWrapper(getAllGoods));
-router.get('/api/goods/:id', ctrlWrapper(getGoodById));
-router.post('/api/goods', authenticate, ctrlWrapper(createGood));
-router.patch('/api/goods/:id', authenticate, ctrlWrapper(updateGood));
-router.delete('/api/goods/:id', authenticate, ctrlWrapper(deleteGood));
+router.get('/goods', celebrate(getGoodsSchema), ctrlWrapper(getAllGoods));
+router.get('/goods/:id', celebrate(getGoodByIdSchema), ctrlWrapper(getGoodById));
+router.post(
+  '/goods',
+  celebrate(createGoodSchema),
+  authenticate,
+  ctrlWrapper(createGood),
+);
+router.patch(
+  '/goods/:id',
+  celebrate(updateGoodSchema),
+  authenticate,
+  ctrlWrapper(updateGood),
+);
+router.delete(
+  '/goods/:id',
+  celebrate(getGoodByIdSchema),
+  authenticate,
+  ctrlWrapper(deleteGood),
+);
 
 export default router;

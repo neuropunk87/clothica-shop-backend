@@ -3,7 +3,6 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
-import createHttpError from 'http-errors';
 import { errors } from 'celebrate';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '../config/swagger.js';
@@ -11,6 +10,7 @@ import { connectMongoDB } from './db/connectMongoDB.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initTelegramBot } from './services/telegram.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -89,6 +89,7 @@ app.use(errors());
 app.use(errorHandler);
 
 await connectMongoDB();
+initTelegramBot();
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

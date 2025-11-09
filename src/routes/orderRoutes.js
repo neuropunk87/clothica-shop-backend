@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/authenticate.js';
+import { requireAdmin } from '../middleware/requireAdmin.js';
 import { celebrate } from 'celebrate';
-
 import {
   createOrder,
   getUserOrders,
   updateOrderStatus,
 } from '../controllers/orderController.js';
-import { requireAdmin } from '../middleware/requireAdmin.js';
 import { createOrderSchema, updateStatusSchema } from '../validations/orderValidation.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
