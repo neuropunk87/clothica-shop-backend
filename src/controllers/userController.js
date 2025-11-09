@@ -1,6 +1,7 @@
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
+import { clearSessionCookies } from '../services/auth.js';
 import {
   saveFileToCloudinary,
   deleteFileFromCloudinary,
@@ -54,10 +55,7 @@ export const deleteProfile = async (req, res) => {
 
   await User.findByIdAndDelete(_id);
 
-  const cookieOptions = { path: '/' };
-  res.clearCookie('sessionId', cookieOptions);
-  res.clearCookie('accessToken', cookieOptions);
-  res.clearCookie('refreshToken', cookieOptions);
+  clearSessionCookies(res);
 
   // res.status(204).send();
   res.status(200).json({

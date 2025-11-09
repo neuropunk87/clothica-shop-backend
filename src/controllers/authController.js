@@ -1,7 +1,11 @@
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { createSession, setSessionCookies } from '../services/auth.js';
+import {
+  createSession,
+  setSessionCookies,
+  clearSessionCookies,
+} from '../services/auth.js';
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
 import { sendPasswordResetCode } from '../services/telegram.js';
@@ -19,7 +23,6 @@ export const registerUser = async (req, res) => {
     phone,
     password: hashedPassword,
   });
-
   const newSession = await createSession(newUser._id);
   setSessionCookies(res, newSession);
 
@@ -49,11 +52,7 @@ export const logoutUser = async (req, res) => {
   if (sessionId) {
     await Session.deleteOne({ _id: sessionId });
   }
-
-  const cookieOptions = { path: '/' };
-  res.clearCookie('sessionId', cookieOptions);
-  res.clearCookie('accessToken', cookieOptions);
-  res.clearCookie('refreshToken', cookieOptions);
+  clearSessionCookies(res);
 
   res.status(204).send();
 };
@@ -63,7 +62,6 @@ export const refreshUserSession = async (req, res) => {
     _id: req.cookies.sessionId,
     refreshToken: req.cookies.refreshToken,
   });
-
   if (!session) throw createHttpError(401, 'Session not found');
 
   const isRefreshTokenExpired =
@@ -75,7 +73,6 @@ export const refreshUserSession = async (req, res) => {
     _id: req.cookies.sessionId,
     refreshToken: req.cookies.refreshToken,
   });
-
   const newSession = await createSession(session.userId);
   setSessionCookies(res, newSession);
 
@@ -97,14 +94,12 @@ export const requestPasswordReset = async (req, res) => {
       code,
       expires: Date.now() + 10 * 60 * 1000,
     });
-
     try {
       await sendPasswordResetCode(user.telegramChatId, code);
     } catch (error) {
       console.error('Failed to send password reset code via Telegram:', error);
     }
   }
-
   res.status(200).json({
     message:
       'If an account with this phone number exists and has a linked Telegram, a reset code has been sent.',
@@ -118,18 +113,15 @@ export const resetPassword = async (req, res) => {
   if (!user) {
     throw createHttpError(401, 'Invalid phone number or reset code.');
   }
-
   const storedCode = resetCodes.get(user._id.toString());
 
   if (!storedCode || storedCode.code !== code) {
     throw createHttpError(401, 'Invalid phone number or reset code.');
   }
-
   if (Date.now() > storedCode.expires) {
     resetCodes.delete(user._id.toString());
     throw createHttpError(401, 'Reset code has expired.');
   }
-
   const hashedPassword = await bcrypt.hash(password, 10);
   await User.updateOne({ _id: user._id }, { password: hashedPassword });
 
