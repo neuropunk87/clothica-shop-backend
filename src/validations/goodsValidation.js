@@ -22,6 +22,7 @@ export const getGoodsSchema = {
     minPrice: Joi.number().positive(),
     maxPrice: Joi.number().positive(),
     name: Joi.string().trim().min(1),
+    category: Joi.string().trim().min(1),
     search: Joi.string().allow(''),
     sortBy: Joi.string().valid('price').default('price'),
     sortOrder: Joi.string().valid('asc', 'desc').default('asc'),

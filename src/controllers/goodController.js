@@ -1,6 +1,7 @@
 // src/controllers/goodController.js
 
 import { Good } from '../models/good.js';
+import { Category } from '../models/category.js';
 import createHttpError from 'http-errors';
 
 export const getAllGoods = async (req, res) => {
@@ -12,6 +13,7 @@ export const getAllGoods = async (req, res) => {
     minPrice,
     maxPrice,
     name,
+    category,
     search,
     sortBy = 'price',
     sortOrder = 'asc',
@@ -23,7 +25,7 @@ export const getAllGoods = async (req, res) => {
 
   const skip = (page - 1) * perPage;
 
-  const goodsQuery = Good.find();
+  const goodsQuery = Good.find().populate('category');
 
   if (gender) {
     goodsQuery.where('gender').equals(gender);
@@ -44,6 +46,36 @@ export const getAllGoods = async (req, res) => {
 
   if (name) {
     goodsQuery.where('name').regex(new RegExp(name, 'i'));
+  }
+
+  if (category) {
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(category);
+
+    if (isObjectId) {
+      // If it is ObjectId — search directly
+      goodsQuery.where('category').equals(category);
+    } else {
+      // If this is the name of a category, find its ID.
+      const matchedCategories = await Category.find({
+        name: new RegExp(category, 'i'),
+      }).select('_id');
+
+      if (matchedCategories.length > 0) {
+        const categoryIds = matchedCategories.map(c => c._id);
+        goodsQuery.where('category').in(categoryIds);
+      } else {
+        // If no category is found
+        return res.status(200).json({
+          success: true,
+          message: `No goods found for category: ${category}`,
+          data: [],
+          page: Number(page),
+          perPage: Number(perPage),
+          totalItems: 0,
+          totalPages: 0,
+        });
+      }
+    }
   }
 
   if (search) {
