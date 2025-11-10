@@ -1,1 +1,7 @@
-export const ORDER_STATUS = ["processing", "picking", "completed", "cancelled"];
+export const ORDER_STATUS = [
+  'new',
+  'processing',
+  'picking',
+  'completed',
+  'cancelled',
+];

@@ -15,7 +15,12 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = Router();
 
-router.post(`/orders`, celebrate(createOrderSchema), ctrlWrapper(createOrder));
+router.post(
+  `/orders`,
+  authenticate,
+  celebrate(createOrderSchema),
+  ctrlWrapper(createOrder),
+);
 router.get(`/orders`, authenticate, ctrlWrapper(getUserOrders));
 router.patch(
   `/orders/:id/status`,

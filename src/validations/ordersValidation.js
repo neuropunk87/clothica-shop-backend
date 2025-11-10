@@ -9,7 +9,7 @@ export const createOrderSchema = {
           goodId: Joi.string().required(),
           amount: Joi.number().min(1).required(),
           size: Joi.string().required(),
-        })
+        }),
       )
       .min(1)
       .required(),
@@ -18,12 +18,19 @@ export const createOrderSchema = {
     userName: Joi.string().required(),
     userLastName: Joi.string().required(),
     userPhone: Joi.string().required(),
+    city: Joi.string().required(),
     branchnum_np: Joi.string().required(),
+    comment: Joi.string().allow('').optional(),
+    status: Joi.string()
+      .valid(...ORDER_STATUS)
+      .optional(),
   }),
 };
 
 export const updateStatusSchema = {
   [Segments.BODY]: Joi.object({
-    status: Joi.string().valid(...Object.values(ORDER_STATUS)).required(),
+    status: Joi.string()
+      .valid(...ORDER_STATUS)
+      .required(),
   }),
 };
