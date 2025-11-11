@@ -2,6 +2,10 @@
 
 import { Category } from '../models/category.js';
 import createHttpError from 'http-errors';
+import {
+  deleteFileFromCloudinary,
+  saveFileToCloudinary,
+} from '../utils/saveFileToCloudinary.js';
 
 export const getAllCategories = async (req, res) => {
   const { page = 1, perPage = 6 } = req.query;
@@ -24,7 +28,7 @@ export const getAllCategories = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Get all categories endpoint',
-    data: categories,
+    categories,
     page,
     perPage,
     totalItems,
@@ -44,7 +48,7 @@ export const getCategoryById = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Get category by id endpoint',
-    data: category,
+    category,
   });
 };
 
@@ -66,7 +70,7 @@ export const createCategory = async (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Category created successfully',
-    data: category,
+    category,
   });
 };
 
@@ -101,7 +105,7 @@ export const updateCategory = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Category updated successfully',
-    data: category,
+    category,
   });
 };
 
@@ -117,6 +121,40 @@ export const deleteCategory = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Category deleted successfully',
-    data: category,
+    category,
+  });
+};
+
+export const updateCategoryImg = async (req, res) => {
+  if (!req.file) {
+    throw createHttpError(
+      400,
+      'No file uploaded. Please include an image file',
+    );
+  }
+  const { id } = req.params;
+  const category = await Category.findById(id);
+  if (!category) {
+    throw createHttpError(400, 'Category not found');
+  }
+  const result = await saveFileToCloudinary(req.file.buffer);
+
+  if (category.img_id != '') {
+    await deleteFileFromCloudinary(category.img_id);
+  }
+  const updCategory = await Category.findByIdAndUpdate(
+    id,
+    {
+      img: result.secure_url,
+      img_id: result.public_id,
+    },
+    { new: true },
+  );
+  res.status(200).json({
+    success: true,
+    message: 'Img updated successfully',
+    data: {
+      img: updCategory.img,
+    },
   });
 };

@@ -1,6 +1,12 @@
 // src/validations/goodsValidation.js
 
 import { Joi, Segments } from 'celebrate';
+import { isValidObjectId } from 'mongoose';
+
+// Custom validator for ObjectId
+const objectIdValidator = (value, helpers) => {
+  return !isValidObjectId(value) ? helpers.message('Invalid id format') : value;
+};
 
 export const getGoodsSchema = {
   [Segments.QUERY]: Joi.object({
@@ -22,7 +28,7 @@ export const getGoodsSchema = {
     minPrice: Joi.number().positive(),
     maxPrice: Joi.number().positive(),
     name: Joi.string().trim().min(1),
-    category: Joi.string().trim().min(1),
+    category: Joi.string().custom(objectIdValidator).trim().min(1),
     search: Joi.string().allow(''),
     sortBy: Joi.string().valid('price').default('price'),
     sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
@@ -31,21 +37,14 @@ export const getGoodsSchema = {
 
 export const getGoodByIdSchema = {
   [Segments.PARAMS]: Joi.object({
-    id: Joi.string()
-      .regex(/^[0-9a-fA-F]{24}$/)
-      .required()
-      .messages({
-        'string.pattern.base': 'Invalid good ID format',
-      }),
+    id: Joi.string().custom(objectIdValidator).required(),
   }),
 };
 
 export const createGoodSchema = {
   [Segments.BODY]: Joi.object({
     name: Joi.string().required().trim(),
-    category: Joi.string()
-      .regex(/^[0-9a-fA-F]{24}$/)
-      .required(),
+    category: Joi.string().custom(objectIdValidator).required(),
     image: Joi.string().uri().trim(),
     price: Joi.object({
       value: Joi.number().min(0).required(),
@@ -63,13 +62,11 @@ export const createGoodSchema = {
 
 export const updateGoodSchema = {
   [Segments.PARAMS]: Joi.object({
-    id: Joi.string()
-      .regex(/^[0-9a-fA-F]{24}$/)
-      .required(),
+    id: Joi.string().custom(objectIdValidator).required(),
   }),
   [Segments.BODY]: Joi.object({
     name: Joi.string().trim(),
-    category: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    category: Joi.string().custom(objectIdValidator).required(),
     image: Joi.string().uri().trim(),
     price: Joi.object({
       value: Joi.number().min(0),

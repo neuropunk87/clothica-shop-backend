@@ -1,7 +1,6 @@
 // src/controllers/goodController.js
 
 import { Good } from '../models/good.js';
-import { Category } from '../models/category.js';
 import createHttpError from 'http-errors';
 
 export const getAllGoods = async (req, res) => {
@@ -25,14 +24,14 @@ export const getAllGoods = async (req, res) => {
 
   const skip = (page - 1) * perPage;
 
-  const goodsQuery = Good.find().populate('category');
+  const goodsQuery = Good.find();
 
   if (gender) {
     goodsQuery.where('gender').equals(gender);
   }
 
   if (size) {
-    const sizeArray = size.split(',').map(s => s.trim());
+    const sizeArray = size.split(',').map((s) => s.trim());
     goodsQuery.where('size').in(sizeArray);
   }
 
@@ -49,42 +48,24 @@ export const getAllGoods = async (req, res) => {
   }
 
   if (category) {
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(category);
-
-    if (isObjectId) {
-      // If it is ObjectId — search directly
-      goodsQuery.where('category').equals(category);
-    } else {
-      // If this is the name of a category, find its ID.
-      const matchedCategories = await Category.find({
-        name: new RegExp(category, 'i'),
-      }).select('_id');
-
-      if (matchedCategories.length > 0) {
-        const categoryIds = matchedCategories.map(c => c._id);
-        goodsQuery.where('category').in(categoryIds);
-      } else {
-        // If no category is found
-        return res.status(200).json({
-          success: true,
-          message: `No goods found for category: ${category}`,
-          data: [],
-          page: Number(page),
-          perPage: Number(perPage),
-          totalItems: 0,
-          totalPages: 0,
-        });
-      }
-    }
+    goodsQuery.where('category').equals(category);
   }
 
   if (search) {
     goodsQuery.where('name').regex(new RegExp(search, 'i'));
   }
 
+  goodsQuery.populate({
+    path: 'category',
+    select: 'name',
+  });
+
   const [totalItems, goods] = await Promise.all([
     goodsQuery.clone().countDocuments(),
-    goodsQuery.skip(skip).limit(perPage).sort({[sortBy]: sortOrder}),
+    goodsQuery
+      .skip(skip)
+      .limit(perPage)
+      .sort({ [sortBy]: sortOrder }),
   ]);
 
   const totalPages = Math.ceil(totalItems / perPage);
@@ -92,11 +73,11 @@ export const getAllGoods = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Get all goods endpoint',
-    data: goods,
     page,
     perPage,
     totalItems,
     totalPages,
+    goods,
   });
 };
 
@@ -112,7 +93,7 @@ export const getGoodById = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Get good by id endpoint',
-    data: good,
+    good,
   });
 };
 
@@ -141,7 +122,7 @@ export const updateGood = async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Successfully updated good',
-    data: updatedGood,
+    updatedGood,
   });
 };
 

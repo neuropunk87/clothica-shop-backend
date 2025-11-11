@@ -17,6 +17,6 @@ const objectIdValidator = (value, helpers) => {
 
 export const categoryIdParamSchema = {
   [Segments.PARAMS]: Joi.object({
-    studentId: Joi.string().custom(objectIdValidator).required(),
+    id: Joi.string().custom(objectIdValidator).required(),
   }),
 };

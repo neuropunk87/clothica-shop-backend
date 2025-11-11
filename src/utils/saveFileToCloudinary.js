@@ -8,11 +8,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function saveFileToCloudinary(buffer) {
+export async function saveFileToCloudinary(buffer, folderName="avatar") {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'clothica-app/avatars',
+        folder: `clothica-app/${folderName}`,
         resource_type: 'image',
         overwrite: true,
         unique_filename: true,
