@@ -1,5 +1,3 @@
-// src/controllers/goodController.js
-
 import { Good } from '../models/good.js';
 import createHttpError from 'http-errors';
 
@@ -11,129 +9,78 @@ export const getAllGoods = async (req, res) => {
     size,
     minPrice,
     maxPrice,
-    name,
     category,
     search,
-    sortBy = 'price',
+    sortBy = 'name',
     sortOrder = 'asc',
   } = req.query;
 
   if (page < 1) {
-    throw createHttpError(400, 'The page number must be greater than 0');
+    throw createHttpError(400, 'Page number must be greater than 0');
   }
-
   const skip = (page - 1) * perPage;
+  const filters = {};
 
-  const goodsQuery = Good.find();
+  if (gender) filters.gender = gender;
+  if (size) filters.size = { $in: size.split(',').map((s) => s.trim()) };
+  if (category) filters.category = category;
 
-  if (gender) {
-    goodsQuery.where('gender').equals(gender);
+  if (minPrice || maxPrice) {
+    filters['price.value'] = {};
+    if (minPrice) filters['price.value'].$gte = Number(minPrice);
+    if (maxPrice) filters['price.value'].$lte = Number(maxPrice);
   }
-
-  if (size) {
-    const sizeArray = size.split(',').map((s) => s.trim());
-    goodsQuery.where('size').in(sizeArray);
-  }
-
-  if (minPrice !== undefined) {
-    goodsQuery.where('price.value').gte(Number(minPrice));
-  }
-
-  if (maxPrice !== undefined) {
-    goodsQuery.where('price.value').lte(Number(maxPrice));
-  }
-
-  if (name) {
-    goodsQuery.where('name').regex(new RegExp(name, 'i'));
-  }
-
-  if (category) {
-    goodsQuery.where('category').equals(category);
-  }
-
   if (search) {
-    goodsQuery.where('name').regex(new RegExp(search, 'i'));
+    filters.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+    ];
   }
-
-  goodsQuery.populate({
-    path: 'category',
-    select: 'name',
-  });
-
-  const [totalItems, goods] = await Promise.all([
-    goodsQuery.clone().countDocuments(),
-    goodsQuery
+  const [goods, totalItems] = await Promise.all([
+    Good.find(filters)
+      .populate('category')
+      .sort({ [sortBy]: sortOrder })
       .skip(skip)
-      .limit(perPage)
-      .sort({ [sortBy]: sortOrder }),
+      .limit(perPage),
+    Good.countDocuments(filters),
   ]);
-
   const totalPages = Math.ceil(totalItems / perPage);
 
   res.status(200).json({
     success: true,
-    message: 'Get all goods endpoint',
-    page,
-    perPage,
-    totalItems,
-    totalPages,
-    goods,
+    message: 'Goods retrieved successfully.',
+    data: goods,
+    meta: {
+      page: Number(page),
+      perPage: Number(perPage),
+      totalItems,
+      totalPages,
+    },
   });
 };
 
 export const getGoodById = async (req, res) => {
   const { id } = req.params;
-
-  const good = await Good.findById(id);
-
-  if (!good) {
-    throw createHttpError(404, 'Good not found');
-  }
-
-  res.status(200).json({
-    success: true,
-    message: 'Get good by id endpoint',
-    good,
-  });
+  const good = await Good.findById(id).populate('category');
+  if (!good) throw createHttpError(404, 'Good not found');
+  res.status(200).json({ success: true, data: good });
 };
 
 export const createGood = async (req, res) => {
   const newGood = await Good.create(req.body);
-
-  res.status(201).json({
-    success: true,
-    message: 'Successfully created good',
-    data: newGood,
-  });
+  res.status(201).json({ success: true, data: newGood });
 };
 
 export const updateGood = async (req, res) => {
   const { id } = req.params;
-
-  const updatedGood = await Good.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!updatedGood) {
-    throw createHttpError(404, 'Good not found');
-  }
-
-  res.status(200).json({
-    success: true,
-    message: 'Successfully updated good',
-    updatedGood,
-  });
+  const updatedGood = await Good.findByIdAndUpdate(id, req.body, { new: true });
+  if (!updatedGood) throw createHttpError(404, 'Good not found');
+  res.status(200).json({ success: true, data: updatedGood });
 };
 
 export const deleteGood = async (req, res) => {
   const { id } = req.params;
-
   const deletedGood = await Good.findByIdAndDelete(id);
-
-  if (!deletedGood) {
-    throw createHttpError(404, 'Good not found');
-  }
-
+  if (!deletedGood) throw createHttpError(404, 'Good not found');
   res.status(204).send();
 };

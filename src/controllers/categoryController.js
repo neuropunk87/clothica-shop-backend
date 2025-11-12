@@ -1,11 +1,9 @@
-// src/controllers/categoryController.js
-
 import { Category } from '../models/category.js';
 import createHttpError from 'http-errors';
 import {
   deleteFileFromCloudinary,
   saveFileToCloudinary,
-} from '../utils/saveFileToCloudinary.js';
+} from '../utils/modifyFileToCloudinary.js';
 
 export const getAllCategories = async (req, res) => {
   const { page = 1, perPage = 6 } = req.query;

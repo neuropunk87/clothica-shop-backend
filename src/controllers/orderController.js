@@ -1,18 +1,14 @@
 import createHttpError from 'http-errors';
 import { Order } from '../models/order.js';
 import { ORDER_STATUS } from '../constants/orderStatuses.js';
-import { User } from '../models/user.js';
 
 export const createOrder = async (req, res, next) => {
-  const { userPhone } = req.body;
-
-  const existingUser = await User.findOne({ phone: userPhone });
 
   const date = new Date().toISOString();
 
   const newOrder = await Order.create({
     ...req.body,
-    userId: existingUser ? existingUser._id : null,
+    userId : req.user ? req.user._id : null,
     date,
   });
 
@@ -32,7 +28,11 @@ export const updateOrderStatus = async (req, res, next) => {
     return next(createHttpError(400, 'Invalid order status'));
   }
 
-  const updated = await Order.findByIdAndUpdate(id, { status }, { new: true });
+  const updated = await Order.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true },
+  );
 
   if (!updated) return next(createHttpError(404, 'Order not found'));
 

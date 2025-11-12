@@ -56,8 +56,6 @@ const goodSchema = new Schema(
         type: String,
       },
     ],
-    averageRate: { type: Number, default: 0 },
-    feedbackCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,

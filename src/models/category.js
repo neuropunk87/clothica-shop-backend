@@ -1,11 +1,20 @@
 import { Schema, model } from 'mongoose';
+import slugify from 'slugify';
 
 const categorySchema = new Schema(
   {
     name: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
     },
     description: {
       type: String,
@@ -27,5 +36,12 @@ const categorySchema = new Schema(
     versionKey: false,
   },
 );
+
+categorySchema.pre('validate', function (next) {
+  if (this.isModified('name')) {
+    this.slug = slugify(this.name, { lower: true, strict: true, locale: 'uk' });
+  }
+  next();
+});
 
 export const Category = model('Category', categorySchema);

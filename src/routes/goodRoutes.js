@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { authenticate } from '../middleware/authenticate.js';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import {
   getAllGoods,
   getGoodById,
@@ -14,7 +14,8 @@ import {
   createGoodSchema,
   updateGoodSchema,
 } from '../validations/goodsValidation.js';
-import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { authenticate } from '../middleware/authenticate.js';
+import { processCategoryFilter } from '../middleware/processCategoryFilter.js';
 
 const router = Router();
 
@@ -97,7 +98,12 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/GoodsListResponse'
  */
-router.get('/goods', celebrate(getGoodsSchema), ctrlWrapper(getAllGoods));
+router.get(
+  '/goods',
+  processCategoryFilter,
+  celebrate(getGoodsSchema),
+  ctrlWrapper(getAllGoods),
+);
 
 /**
  * @swagger
@@ -131,7 +137,7 @@ router.get(
  * @swagger
  * /api/goods:
  *   post:
- *     summary: Create a new good (admin/authenticated)
+ *     summary: Create a new good (admin only)
  *     tags: [Goods]
  *     security:
  *       - cookieAuth: []
@@ -158,7 +164,7 @@ router.post(
  * @swagger
  * /api/goods/{id}:
  *   patch:
- *     summary: Update a good by ID (authenticated)
+ *     summary: Update a good by ID (admin only)
  *     tags: [Goods]
  *     security:
  *       - cookieAuth: []
@@ -190,7 +196,7 @@ router.patch(
  * @swagger
  * /api/goods/{id}:
  *   delete:
- *     summary: Delete a good by ID
+ *     summary: Delete a good by ID (admin only)
  *     tags: [Goods]
  *     security:
  *       - cookieAuth: []

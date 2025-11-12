@@ -5,7 +5,7 @@ import { clearSessionCookies } from '../services/auth.js';
 import {
   saveFileToCloudinary,
   deleteFileFromCloudinary,
-} from '../utils/saveFileToCloudinary.js';
+} from '../utils/modifyFileToCloudinary.js';
 
 export const getProfile = async (req, res) => {
   res.status(200).json({
