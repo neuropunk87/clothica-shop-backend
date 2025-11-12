@@ -6,20 +6,31 @@ export const createFeedback = async (req, res, next) => {
 };
 
 export const getAllFeedbacks = async (req, res, next) => {
-  const page = 1;
-  const perPage = 3;
+  const { page = 1, perPage = 3, good, category, rate } = req.query;
 
   const filter = {};
-  if (req.query.goodId) filter.goodId = req.query.goodId;
-  if (req.query.category) filter.category = req.query.category;
-  if (req.query.rate) filter.rate = Number(req.query.rate);
+  if (good) filter.good = good;
+  if (category) filter.category = category;
+  if (rate) filter.rate = Number(rate);
+
+  const feedbackQuery = Feedback.find(filter);
+
+  feedbackQuery.populate({
+    path: 'good',
+    select: 'name',
+  });
+
+  feedbackQuery.populate({
+    path: 'category',
+    select: 'name',
+  });
 
   const [feedbacks, total] = await Promise.all([
-    Feedback.find(filter)
+    feedbackQuery
       .sort({ createdAt: -1 })
       .skip((page - 1) * perPage)
       .limit(perPage),
-    Feedback.countDocuments(filter),
+    feedbackQuery.clone().countDocuments(),
   ]);
   const totalPages = Math.ceil(total / perPage);
 
