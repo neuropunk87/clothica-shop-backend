@@ -16,7 +16,6 @@ import {
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { upload } from '../middleware/multer.js';
 
-
 const router = Router();
 
 /**
@@ -114,7 +113,7 @@ router.get(
  * @swagger
  * /api/categories:
  *   post:
- *     summary: Create a new category
+ *     summary: Create a new category (admin only)
  *     tags: [Categories]
  *     security:
  *       - cookieAuth: []
@@ -142,7 +141,7 @@ router.post('/categories', authenticate, ctrlWrapper(createCategory));
  * @swagger
  * /api/categories/{id}:
  *   patch:
- *     summary: Update category by ID
+ *     summary: Update category by ID (admin only)
  *     tags: [Categories]
  *     security:
  *       - cookieAuth: []
@@ -176,7 +175,7 @@ router.patch('/categories/:id', authenticate, ctrlWrapper(updateCategory));
  * @swagger
  * /api/categories/{id}:
  *   delete:
- *     summary: Delete category by ID
+ *     summary: Delete category by ID (admin only)
  *     tags: [Categories]
  *     security:
  *       - cookieAuth: []
