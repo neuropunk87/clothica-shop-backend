@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { ORDER_STATUS } from '../constants/orderStatuses.js';
+import { Counter } from './counter.js';
 
 const orderSchema = new Schema(
   {
@@ -14,11 +15,11 @@ const orderSchema = new Schema(
 
     sum: { type: Number, required: true, min: 1 },
 
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false, default: null },
 
     date: { type: String, required: true },
 
-    orderNum: { type: String, required: true },
+    orderNum: { type: String, index: true },
 
     status: {
       type: String,
@@ -38,5 +39,17 @@ const orderSchema = new Schema(
     versionKey: false,
   },
 );
+
+orderSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: 'orderNum' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    this.orderNum = String(counter.seq).padStart(7, '0');
+  }
+  next();
+});
 
 export const Order = model('Order', orderSchema);

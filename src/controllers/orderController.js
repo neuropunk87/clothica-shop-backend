@@ -1,15 +1,15 @@
 import createHttpError from 'http-errors';
 import { Order } from '../models/order.js';
-import { customAlphabet } from 'nanoid';
 import { ORDER_STATUS } from '../constants/orderStatuses.js';
 
 export const createOrder = async (req, res, next) => {
-  const orderNum = customAlphabet('0123456789', 8)();
+
+  const date = new Date().toISOString();
 
   const newOrder = await Order.create({
     ...req.body,
-    userId: req.user._id,
-    orderNum,
+    userId : req.user ? req.user._id : null,
+    date,
   });
 
   res.status(201).json(newOrder);
@@ -21,7 +21,7 @@ export const getUserOrders = async (req, res, next) => {
 };
 
 export const updateOrderStatus = async (req, res, next) => {
-  const { orderId } = req.params;
+  const { id } = req.params;
   const { status } = req.body;
 
   if (!ORDER_STATUS.includes(status)) {
@@ -29,7 +29,7 @@ export const updateOrderStatus = async (req, res, next) => {
   }
 
   const updated = await Order.findByIdAndUpdate(
-    orderId,
+    id,
     { status },
     { new: true },
   );

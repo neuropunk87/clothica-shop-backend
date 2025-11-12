@@ -99,7 +99,6 @@ const router = Router();
  */
 router.post(
   `/orders`,
-  authenticate,
   celebrate(createOrderSchema),
   ctrlWrapper(createOrder),
 );

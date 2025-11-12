@@ -14,7 +14,6 @@ export const createOrderSchema = {
       .min(1)
       .required(),
     sum: Joi.number().min(1).required(),
-    date: Joi.string().required(),
     userName: Joi.string().required(),
     userLastName: Joi.string().required(),
     userPhone: Joi.string().required(),
