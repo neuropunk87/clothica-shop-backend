@@ -135,7 +135,7 @@ export const updateCategoryImg = async (req, res) => {
   if (!category) {
     throw createHttpError(400, 'Category not found');
   }
-  const result = await saveFileToCloudinary(req.file.buffer);
+  const result = await saveFileToCloudinary(req.file.buffer, "categories");
 
   if (category.img_id != '') {
     await deleteFileFromCloudinary(category.img_id);
