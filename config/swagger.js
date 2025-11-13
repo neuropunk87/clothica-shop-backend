@@ -1,30 +1,34 @@
-import swaggerJsdoc from "swagger-jsdoc";
+import swaggerJsdoc from 'swagger-jsdoc';
 
 const options = {
   definition: {
-    openapi: "3.0.0",
+    openapi: '3.0.0',
     info: {
-      title: "Clothica API",
-      version: "1.0.0",
-      description: "Backend API for Clothica",
+      title: 'Clothica API',
+      version: '1.0.0',
+      description: 'Backend API for Clothica',
     },
     servers: [
       {
+        url: `https://clothica-shop-backend.onrender.com`,
+        description: 'Production server',
+      },
+      {
         url: `http://localhost:${process.env.PORT || 3030}`,
-        description: "Development server",
+        description: 'Development server',
       },
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'accessToken',
         },
       },
     },
   },
-  apis: ["./src/routes/*.js"],
+  apis: ['./src/routes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

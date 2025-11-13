@@ -15,6 +15,7 @@ import {
   resetPassword,
 } from '../controllers/authController.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { authenticate } from '../middleware/authenticate.js';
 import { authLimiter } from '../middleware/rateLimitAuth.js';
 
 const router = Router();
@@ -127,13 +128,15 @@ router.post(
  *   post:
  *     summary: Logout user (clears session cookies)
  *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       204:
  *         description: Logged out successfully.
  *       401:
  *         description: Missing or invalid authentication.
  */
-router.post('/auth/logout', ctrlWrapper(logoutUser));
+router.post('/auth/logout', authenticate, ctrlWrapper(logoutUser));
 
 /**
  * @swagger
@@ -142,6 +145,8 @@ router.post('/auth/logout', ctrlWrapper(logoutUser));
  *     summary: Refresh session tokens (rotates session)
  *     tags: [Auth]
  *     description: Uses cookies (sessionId + refreshToken) to create a new session and set new cookies.
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Session refreshed successfully.
