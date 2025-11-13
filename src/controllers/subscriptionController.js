@@ -4,19 +4,7 @@ import handlebars from 'handlebars';
 import { Subscription } from '../models/subscription.js';
 import { sendMail } from '../utils/sendMail.js';
 
-export const createSubscription = async (req, res) => {
-  const { email } = req.body;
-
-  const existingSubscription = await Subscription.findOne({ email });
-
-  if (existingSubscription) {
-    return res.status(200).json({
-      message: 'You have successfully subscribed to our newsletter!',
-    });
-  }
-
-  await Subscription.create({ email });
-
+const sendWelcomeEmail = async (email) => {
   try {
     const templatePath = path.resolve(
       'src',
@@ -36,10 +24,26 @@ export const createSubscription = async (req, res) => {
       subject: 'Вітаємо в Clothica! Дякуємо за підписку 🎉',
       html,
     });
+    console.log(`Welcome email sent to ${email}`);
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error(`Failed to send welcome email to ${email}:`, error);
   }
+};
+
+export const createSubscription = async (req, res) => {
+  const { email } = req.body;
+
+  const existingSubscription = await Subscription.findOne({ email });
+
+  if (existingSubscription) {
+    return res.status(200).json({
+      message: 'You have successfully subscribed to our newsletter!',
+    });
+  }
+  await Subscription.create({ email });
+
   res.status(201).json({
     message: 'You have successfully subscribed to our newsletter!',
   });
+  sendWelcomeEmail(email);
 };
