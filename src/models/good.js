@@ -79,5 +79,10 @@ goodSchema.index({ gender: 1 });
 goodSchema.index({ colors: 1 });
 goodSchema.index({ size: 1 });
 goodSchema.index({ name: 'text', description: 'text' });
+goodSchema.index({
+  feedbackCount: -1,
+  averageRate: -1,
+  name: 1,
+});
 
 export const Good = model('Good', goodSchema);

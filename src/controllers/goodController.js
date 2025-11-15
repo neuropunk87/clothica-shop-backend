@@ -34,6 +34,20 @@ const buildFilterQuery = (queryParams) => {
   return filterConditions.length > 0 ? { $and: filterConditions } : {};
 };
 
+const buildSortOrder = (sortBy, sortOrder) => {
+  const order = sortOrder === 'desc' ? -1 : 1;
+  const sortOrderObj = {};
+  if (sortBy === 'popgoods') {
+    sortOrderObj['feedbackCount'] = -1;
+    sortOrderObj['averageRate'] = -1;
+    sortOrderObj['name'] = 1;
+  } else {
+    sortOrderObj[sortBy] = order;
+  }
+
+  return sortOrderObj;
+};
+
 export const getAllGoods = async (req, res) => {
   const {
     page = 1,
@@ -50,11 +64,12 @@ export const getAllGoods = async (req, res) => {
   }
   const skip = (pageNum - 1) * perPageNum;
   const filters = buildFilterQuery(req.query);
+  const sortOrderObj = buildSortOrder(sortBy, sortOrder);
 
   const [goods, totalItems] = await Promise.all([
     Good.find(filters)
       .populate('category', 'name slug')
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .sort(sortOrderObj)
       .skip(skip)
       .limit(perPageNum)
       .lean(),

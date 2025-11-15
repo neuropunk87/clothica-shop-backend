@@ -35,7 +35,7 @@ export const getGoodsSchema = {
     name: Joi.string().trim().min(1),
     category: Joi.string().custom(objectIdValidator).trim().min(1),
     search: Joi.string().allow(''),
-    sortBy: Joi.string().valid('price').default('price'),
+    sortBy: Joi.string().valid('price', 'name', 'popgoods').default('price'),
     sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
   }),
 };
