@@ -21,9 +21,8 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3030;
-const isProd = process.env.NODE_ENV === 'production';
 
-app.set('trust proxy', isProd ? 1 : false);
+app.set('trust proxy', 1);
 
 app.use(logger);
 app.use(express.json());
@@ -31,30 +30,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(helmet());
 
-const allowList = [
+const allowedOrigins = [
   process.env.CLIENT_URL,
   process.env.CLIENT_URL_2,
   process.env.CLIENT_URL_LOCAL,
 ].filter(Boolean);
 
-if (isProd) {
-  if (allowList.length === 0) {
-    app.use(cors({ origin: false }));
-  } else {
-    app.use(
-      cors({
-        origin: (origin, callback) => {
-          if (!origin) return callback(null, true);
-          if (allowList.includes(origin)) return callback(null, true);
-          return callback(new Error('Not allowed by CORS'));
-        },
-        credentials: true,
-      }),
-    );
-  }
-} else {
-  app.use(cors());
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push(process.env.CLIENT_URL_LOCAL);
 }
+
+const corsOptions = {
+  credentials: true,
+  origin: (origin, callback) => {
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+};
+app.use(cors(corsOptions));
 
 app.use(cookieParser());
 
