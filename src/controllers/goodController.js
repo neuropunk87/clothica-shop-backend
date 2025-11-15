@@ -1,58 +1,75 @@
 import { Good } from '../models/good.js';
 import createHttpError from 'http-errors';
 
+const buildFilterQuery = (queryParams) => {
+  const { gender, size, color, minPrice, maxPrice, category, search } =
+    queryParams;
+
+  const filterConditions = [];
+
+  if (gender) {
+    filterConditions.push({ gender });
+  }
+  if (size) {
+    const sizes = size.split(',').map((s) => s.trim());
+    filterConditions.push({ size: { $in: sizes } });
+  }
+  if (color) {
+    const colors = color.split(',').map((c) => c.trim());
+    filterConditions.push({ colors: { $in: colors } });
+  }
+  if (category) {
+    filterConditions.push({ category });
+  }
+  if (minPrice || maxPrice) {
+    const priceCondition = {};
+    if (minPrice) priceCondition.$gte = Number(minPrice);
+    if (maxPrice) priceCondition.$lte = Number(maxPrice);
+    filterConditions.push({ 'price.value': priceCondition });
+  }
+  if (search) {
+    filterConditions.push({ $text: { $search: search } });
+  }
+
+  return filterConditions.length > 0 ? { $and: filterConditions } : {};
+};
+
 export const getAllGoods = async (req, res) => {
   const {
     page = 1,
     perPage = 12,
-    gender,
-    size,
-    minPrice,
-    maxPrice,
-    category,
-    search,
     sortBy = 'name',
     sortOrder = 'asc',
   } = req.query;
 
-  if (page < 1) {
+  const pageNum = Number(page);
+  const perPageNum = Number(perPage);
+
+  if (pageNum < 1) {
     throw createHttpError(400, 'Page number must be greater than 0');
   }
-  const skip = (page - 1) * perPage;
-  const filters = {};
+  const skip = (pageNum - 1) * perPageNum;
+  const filters = buildFilterQuery(req.query);
 
-  if (gender) filters.gender = gender;
-  if (size) filters.size = { $in: size.split(',').map((s) => s.trim()) };
-  if (category) filters.category = category;
-
-  if (minPrice || maxPrice) {
-    filters['price.value'] = {};
-    if (minPrice) filters['price.value'].$gte = Number(minPrice);
-    if (maxPrice) filters['price.value'].$lte = Number(maxPrice);
-  }
-  if (search) {
-    filters.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ];
-  }
   const [goods, totalItems] = await Promise.all([
     Good.find(filters)
-      .populate('category')
-      .sort({ [sortBy]: sortOrder })
+      .populate('category', 'name slug')
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
       .skip(skip)
-      .limit(perPage),
+      .limit(perPageNum)
+      .lean(),
     Good.countDocuments(filters),
   ]);
-  const totalPages = Math.ceil(totalItems / perPage);
+
+  const totalPages = Math.ceil(totalItems / perPageNum);
 
   res.status(200).json({
     success: true,
-    message: 'Goods retrieved successfully.',
+    message: 'Goods retrieved successfully',
     data: goods,
     meta: {
-      page: Number(page),
-      perPage: Number(perPage),
+      page: pageNum,
+      perPage: perPageNum,
       totalItems,
       totalPages,
     },
@@ -61,7 +78,7 @@ export const getAllGoods = async (req, res) => {
 
 export const getGoodById = async (req, res) => {
   const { id } = req.params;
-  const good = await Good.findById(id).populate('category');
+  const good = await Good.findById(id).populate('category', 'name slug').lean();
   if (!good) throw createHttpError(404, 'Good not found');
   res.status(200).json({ success: true, data: good });
 };

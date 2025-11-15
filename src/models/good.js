@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { AVAILABLE_COLORS } from '../constants/colors.js';
 
 const goodSchema = new Schema(
   {
@@ -33,6 +34,13 @@ const goodSchema = new Schema(
         enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
       },
     ],
+    colors: [
+      {
+        type: String,
+        enum: AVAILABLE_COLORS,
+        trim: true,
+      },
+    ],
     description: {
       type: String,
       trim: true,
@@ -64,5 +72,12 @@ const goodSchema = new Schema(
     versionKey: false,
   },
 );
+
+goodSchema.index({ 'price.value': 1 });
+goodSchema.index({ category: 1 });
+goodSchema.index({ gender: 1 });
+goodSchema.index({ colors: 1 });
+goodSchema.index({ size: 1 });
+goodSchema.index({ name: 'text', description: 'text' });
 
 export const Good = model('Good', goodSchema);

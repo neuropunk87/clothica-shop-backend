@@ -1,9 +1,7 @@
-// src/validations/goodsValidation.js
-
 import { Joi, Segments } from 'celebrate';
 import { isValidObjectId } from 'mongoose';
+import { AVAILABLE_COLORS } from '../constants/colors.js';
 
-// Custom validator for ObjectId
 const objectIdValidator = (value, helpers) => {
   return !isValidObjectId(value) ? helpers.message('Invalid id format') : value;
 };
@@ -16,13 +14,20 @@ export const getGoodsSchema = {
     size: Joi.string().custom((value, helpers) => {
       const sizes = value.split(',').map((s) => s.trim());
       const validSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
       const invalidSizes = sizes.filter((s) => !validSizes.includes(s));
-
       if (invalidSizes.length > 0) {
         return helpers.error('any.invalid');
       }
-
+      return value;
+    }),
+    color: Joi.string().custom((value, helpers) => {
+      const colors = value.split(',').map((c) => c.trim());
+      const invalidColors = colors.filter((c) => !AVAILABLE_COLORS.includes(c));
+      if (invalidColors.length > 0) {
+        return helpers.error('any.invalid', {
+          details: `Invalid colors provided: ${invalidColors.join(', ')}`,
+        });
+      }
       return value;
     }),
     minPrice: Joi.number().positive(),
@@ -53,6 +58,7 @@ export const createGoodSchema = {
     size: Joi.array().items(
       Joi.string().valid('XS', 'S', 'M', 'L', 'XL', 'XXL'),
     ),
+    colors: Joi.array().items(Joi.string().valid(...AVAILABLE_COLORS)),
     description: Joi.string().trim(),
     prevDescription: Joi.string().trim(),
     gender: Joi.string().valid('women', 'unisex', 'man'),
@@ -75,6 +81,7 @@ export const updateGoodSchema = {
     size: Joi.array().items(
       Joi.string().valid('XS', 'S', 'M', 'L', 'XL', 'XXL'),
     ),
+    colors: Joi.array().items(Joi.string().valid(...AVAILABLE_COLORS)),
     description: Joi.string().trim(),
     prevDescription: Joi.string().trim(),
     gender: Joi.string().valid('women', 'unisex', 'man'),
