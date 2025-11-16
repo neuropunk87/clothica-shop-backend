@@ -15,16 +15,16 @@ const sendWelcomeEmail = async (email) => {
     const template = handlebars.compile(templateSource);
 
     const html = template({
-      clientUrl: process.env.FRONTEND_DOMAIN || 'http://localhost:3000',
+      clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
       year: new Date().getFullYear(),
     });
+
     await sendMail({
-      from: `Clothica <${process.env.SMTP_FROM}>`,
       to: email,
       subject: 'Вітаємо в Clothica! Дякуємо за підписку 🎉',
       html,
     });
-    console.log(`Welcome email sent to ${email}`);
+    console.log(`Welcome email successfully queued for sending to ${email}`);
   } catch (error) {
     console.error(`Failed to send welcome email to ${email}:`, error);
   }
@@ -42,8 +42,9 @@ export const createSubscription = async (req, res) => {
   }
   await Subscription.create({ email });
 
+  sendWelcomeEmail(email);
+
   res.status(201).json({
     message: 'You have successfully subscribed to our newsletter!',
   });
-  sendWelcomeEmail(email);
 };
