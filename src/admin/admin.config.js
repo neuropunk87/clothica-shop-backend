@@ -88,11 +88,10 @@ export const adminRouter = buildAuthenticatedRouter(
   {
     authenticate: async (phone, password) => {
       const user = await User.findOne({ phone });
-      if (user) {
+      if (user && user.password) {
         const isValidPassword = await bcrypt.compare(password, user.password);
-
         if (isValidPassword && user.role === 'admin') {
-          return user.toObject();
+          return user;
         }
       }
       return false;

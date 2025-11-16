@@ -1,6 +1,11 @@
 .vscode
 .DS_Store
 .idea
+.adminjs
+
+# AdminJS generated files
+bundle.js
+entry.js
 
 # Logs
 logs
