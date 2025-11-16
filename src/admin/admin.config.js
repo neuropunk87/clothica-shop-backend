@@ -3,6 +3,7 @@ import { buildAuthenticatedRouter } from '@adminjs/express';
 import { Database, Resource } from '@adminjs/mongoose';
 import bcrypt from 'bcrypt';
 import 'dotenv/config';
+import MongoStore from 'connect-mongo';
 import { User } from '../models/user.js';
 import { Good } from '../models/good.js';
 import { Category } from '../models/category.js';
@@ -101,6 +102,10 @@ export const adminRouter = buildAuthenticatedRouter(
   },
   null,
   {
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URL,
+      collectionName: 'sessions',
+    }),
     secret: process.env.ADMIN_SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
