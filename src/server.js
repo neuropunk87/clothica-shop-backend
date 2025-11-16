@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { errors } from 'celebrate';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '../config/swagger.js';
+import { admin, adminRouter } from './admin/admin.config.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
@@ -32,7 +33,21 @@ app.use(logger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      },
+    },
+  }),
+);
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: false,
+//   }),
+// );
 
 const allowList = [
   process.env.CLIENT_URL,
@@ -60,6 +75,8 @@ if (isProd) {
 }
 
 app.use(cookieParser());
+
+app.use(admin.options.rootPath, adminRouter);
 
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
