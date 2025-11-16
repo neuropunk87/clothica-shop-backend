@@ -5,7 +5,7 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 let bot;
 
 if (token) {
-  bot = new TelegramBot(token, { polling: true });
+  bot = new TelegramBot(token);
 
   bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
@@ -48,19 +48,30 @@ if (token) {
     const helpText = `*Доступні команди:*\n\n/start - Почати роботу з ботом та прив'язати акаунт.\n/help - Показати це повідомлення`;
     bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
   });
-  console.log('Telegram bot started with polling...');
 } else {
-  console.warn('TELEGRAM_BOT_TOKEN not found. Bot will not start');
+  console.warn('TELEGRAM_BOT_TOKEN not found. Bot will not be initialized');
 }
+
+export const setupTelegramWebhook = async () => {
+  if (!bot) return;
+
+  const webhookUrl = `${process.env.RENDER_EXTERNAL_URL}/api/telegram/webhook/${token}`;
+  try {
+    await bot.setWebHook(webhookUrl);
+    console.log(`✅ Telegram webhook set up at: ${webhookUrl}`);
+  } catch (error) {
+    console.error('❌ Failed to set Telegram webhook:', error.message);
+  }
+};
+
+export const processTelegramUpdate = (update) => {
+  if (bot) {
+    bot.processUpdate(update);
+  }
+};
 
 export const sendPasswordResetCode = async (chatId, code) => {
   if (!bot) return;
   const message = `Ваш одноразовий код для скидання пароля в Clothica: \n\n*${code}* \n\nНікому не повідомляйте цей код`;
   await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-};
-
-export const initTelegramBot = () => {
-  if (bot) {
-    console.log('✅ Telegram bot is already initialized.');
-  }
 };

@@ -10,7 +10,10 @@ import { connectMongoDB } from './db/connectMongoDB.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { initTelegramBot } from './services/telegram.js';
+import {
+  setupTelegramWebhook,
+  processTelegramUpdate,
+} from './services/telegram.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -76,13 +79,26 @@ app.get('/', (req, res) => {
   });
 });
 
+app.post(
+  `/api/telegram/webhook/${process.env.TELEGRAM_BOT_TOKEN}`,
+  (req, res) => {
+    processTelegramUpdate(req.body);
+    res.sendStatus(200);
+  },
+);
+
 app.use(notFoundHandler);
 app.use(errors());
 app.use(errorHandler);
 
-await connectMongoDB();
-initTelegramBot();
+const startServer = async () => {
+  await connectMongoDB();
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  if (process.env.NODE_ENV === 'production') {
+    await setupTelegramWebhook();
+  }
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
+startServer();
