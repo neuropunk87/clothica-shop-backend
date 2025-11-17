@@ -1,5 +1,3 @@
-// src/admin/resources.js
-
 import { User } from '../models/user.js';
 import { Good } from '../models/good.js';
 import { Order } from '../models/order.js';
@@ -14,7 +12,7 @@ export const resources = [
       properties: {
         password: {
           type: 'password',
-          isVisible: { list: false, show: false, edit: true }
+          isVisible: { list: false, show: false, edit: true },
         },
       },
     },

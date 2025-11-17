@@ -6,7 +6,7 @@ const orderSchema = new Schema(
   {
     goods: [
       {
-        goodId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+        goodId: { type: Schema.Types.ObjectId, ref: 'Good', required: true },
         amount: { type: Number, required: true, min: 1 },
         size: { type: String, required: true },
         _id: false,
@@ -15,7 +15,12 @@ const orderSchema = new Schema(
 
     sum: { type: Number, required: true, min: 1 },
 
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false, default: null },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+      default: null,
+    },
 
     date: { type: String, required: true },
 
@@ -45,7 +50,7 @@ orderSchema.pre('save', async function (next) {
     const counter = await Counter.findByIdAndUpdate(
       { _id: 'orderNum' },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
     this.orderNum = String(counter.seq).padStart(7, '0');
   }

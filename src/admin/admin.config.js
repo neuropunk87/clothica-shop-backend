@@ -13,5 +13,7 @@ export const adminOptions = {
   branding: {
     companyName: 'Clothica Admin',
     softwareBrothers: false,
+    logo: '/logo.png',
+    favicon: '/favicon.png',
   },
 };
