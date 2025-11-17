@@ -1,5 +1,3 @@
-// src/admin/admin.config.js
-
 import AdminJS from 'adminjs';
 import * as AdminJSMongoose from '@adminjs/mongoose';
 import { resources } from './resources.js';
