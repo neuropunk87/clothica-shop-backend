@@ -5,7 +5,7 @@ import AdminJS from 'adminjs';
 AdminJS.registerAdapter({ Database, Resource });
 
 const initialize = async () => {
-  const db = await mongoose.connect(process.env.DATABASE_URL as string);
+  const db = await mongoose.connect(process.env.MONGO_URL as string);
 
   return { db };
 };
