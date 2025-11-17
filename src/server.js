@@ -6,7 +6,10 @@ import 'dotenv/config';
 import { errors } from 'celebrate';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '../config/swagger.js';
-import { admin, adminRouter } from './admin/admin.config.js';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import AdminJS from 'adminjs';
+import AdminJSExpress from '@adminjs/express';
 import { connectMongoDB } from './db/connectMongoDB.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
@@ -15,6 +18,8 @@ import {
   setupTelegramWebhook,
   processTelegramUpdate,
 } from './services/telegram.js';
+import { adminOptions } from './admin/admin.config.js';
+import { authenticate } from './admin/auth.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -27,27 +32,62 @@ const app = express();
 const PORT = process.env.PORT ?? 3030;
 const isProd = process.env.NODE_ENV === 'production';
 
+// ============================================
+// ADMINJS SETUP
+// ============================================
+let adminInstance = null;
+
+const createAdminJS = () => {
+  const admin = new AdminJS(adminOptions);
+
+  const sessionStore = MongoStore.create({
+    mongoUrl: process.env.MONGO_URL,
+    collectionName: 'admin_sessions',
+    ttl: 24 * 60 * 60,
+  });
+  const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
+    admin,
+    {
+      authenticate,
+      cookieName: 'adminjs',
+      cookiePassword: process.env.ADMIN_COOKIE_SECRET,
+    },
+    null,
+    {
+      store: sessionStore,
+      resave: false,
+      saveUninitialized: false,
+      secret: process.env.ADMIN_SESSION_SECRET,
+      cookie: {
+        httpOnly: true,
+        secure: isProd,
+        maxAge: 1000 * 60 * 60 * 24,
+      },
+      name: 'adminjs',
+    }
+  );
+  app.use(admin.options.rootPath, adminRouter);
+
+  if (!isProd) {
+    admin.watch();
+  }
+  console.log('✅ AdminJS mounted at:', admin.options.rootPath);
+  adminInstance = admin;
+};
+
+createAdminJS();
+// ============================================
+
 app.set('trust proxy', isProd ? 1 : false);
 
 app.use(logger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      },
-    },
-  }),
-);
-// app.use(
-//   helmet({
-//     contentSecurityPolicy: false,
-//   }),
-// );
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 
 const allowList = [
   process.env.CLIENT_URL,
@@ -75,8 +115,6 @@ if (isProd) {
 }
 
 app.use(cookieParser());
-
-app.use(admin.options.rootPath, adminRouter);
 
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
