@@ -19,7 +19,7 @@ export const createFeedbackSchema = {
 export const getAllFeedbacksSchema = {
   [Segments.QUERY]: Joi.object({
     page: Joi.number().integer().min(1).default(1),
-    perPage: Joi.number().integer().min(3).max(10).default(3),
+    perPage: Joi.number().integer().min(3).max(12).default(3),
     good: Joi.string().custom(objectIdValidator).trim(),
     category: Joi.string().custom(objectIdValidator).trim(),
     rate: Joi.number().integer().min(1).max(5),
