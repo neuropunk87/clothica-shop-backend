@@ -2,7 +2,7 @@ import { Good } from '../models/good.js';
 import createHttpError from 'http-errors';
 
 const buildFilterQuery = (queryParams) => {
-  const { gender, size, color, minPrice, maxPrice, category, search } =
+  const { gender, size, good, color, minPrice, maxPrice, category, search } =
     queryParams;
 
   const filterConditions = [];
@@ -13,6 +13,10 @@ const buildFilterQuery = (queryParams) => {
   if (size) {
     const sizes = size.split(',').map((s) => s.trim());
     filterConditions.push({ size: { $in: sizes } });
+  }
+  if (good) {
+    const goods = good.split(',').map((g) => g.trim());
+    filterConditions.push({ _id: { $in: goods } });
   }
   if (color) {
     const colors = color.split(',').map((c) => c.trim());

@@ -20,6 +20,16 @@ export const getGoodsSchema = {
       }
       return value;
     }),
+    good: Joi.string().custom((value, helpers) => {
+      const goodIds = value.split(',').map((id) => id.trim());
+      const invalidIds = goodIds.filter((id) => !isValidObjectId(id));
+
+      if (invalidIds.length > 0) {
+        return helpers.message(`Invalid good IDs: ${invalidIds.join(', ')}`);
+      }
+
+      return value;
+    }),
     color: Joi.string().custom((value, helpers) => {
       const colors = value.split(',').map((c) => c.trim());
       const invalidColors = colors.filter((c) => !AVAILABLE_COLORS.includes(c));
