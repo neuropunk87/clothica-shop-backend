@@ -24,17 +24,23 @@ export const updateProfile = async (req, res) => {
     }
   }
   if (req.body.email) {
-    throw createHttpError(400, req.t('errors.emailNotChangeable'));
+    throw createHttpError(
+      400,
+      'Email address cannot be changed through this endpoint',
+    );
   }
   if (Object.keys(updates).length === 0) {
-    throw createHttpError(400, req.t('errors.noFieldsToUpdate'));
+    throw createHttpError(
+      400,
+      'Request body does not contain any fields to update',
+    );
   }
   const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
     new: true,
   });
   res.status(200).json({
     success: true,
-    message: req.t('profile.updated'),
+    message: 'Profile updated successfully',
     data: updatedUser,
   });
 };
@@ -54,13 +60,16 @@ export const deleteProfile = async (req, res) => {
   // res.status(204).send();
   res.status(200).json({
     success: true,
-    message: req.t('profile.deleted'),
+    message: 'Profile deleted successfully',
   });
 };
 
 export const updateUserAvatar = async (req, res) => {
   if (!req.file) {
-    throw createHttpError(400, req.t('errors.noFileUploaded'));
+    throw createHttpError(
+      400,
+      'No file uploaded. Please include an image file',
+    );
   }
   const result = await saveFileToCloudinary(req.file.buffer);
 
@@ -77,7 +86,7 @@ export const updateUserAvatar = async (req, res) => {
   );
   res.status(200).json({
     success: true,
-    message: req.t('profile.avatarUpdated'),
+    message: 'Avatar updated successfully',
     data: {
       avatar: user.avatar,
     },
@@ -87,7 +96,7 @@ export const updateUserAvatar = async (req, res) => {
 export const getTelegramLink = (req, res) => {
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
   if (!botUsername) {
-    throw createHttpError(500, req.t('profile.telegramBotNotConfigured'));
+    throw createHttpError(500, 'Telegram bot is not configured on the server');
   }
   const link = `https://t.me/${botUsername}?start=${req.user._id}`;
 

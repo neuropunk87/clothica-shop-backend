@@ -7,25 +7,25 @@ import {
 
 export const getAllCategories = async (req, res) => {
   const { page = 1, perPage = 6 } = req.query;
-  const lang = req.i18n.language;
-  Category.schema.options.lang = lang;
 
   if (page < 1) {
-    throw createHttpError(400, req.t('errors.pageNumber'));
+    throw createHttpError(400, 'The page number must be greater than 0');
   }
+
   const skip = (page - 1) * perPage;
 
   const categoriesQuery = Category.find();
 
   const [totalItems, categories] = await Promise.all([
     categoriesQuery.clone().countDocuments(),
-    categoriesQuery.skip(skip).limit(perPage).lean({ virtuals: true }),
+    categoriesQuery.skip(skip).limit(perPage),
   ]);
+
   const totalPages = Math.ceil(totalItems / perPage);
 
   res.status(200).json({
     success: true,
-    message: req.t('category.retrieved'),
+    message: 'Get all categories endpoint',
     categories,
     page,
     perPage,
@@ -36,17 +36,16 @@ export const getAllCategories = async (req, res) => {
 
 export const getCategoryById = async (req, res) => {
   const { id } = req.params;
-  const lang = req.i18n.language;
-  Category.schema.options.lang = lang;
 
-  const category = await Category.findById(id).lean({ virtuals: true });
+  const category = await Category.findById(id);
+
   if (!category) {
-    throw createHttpError(404, req.t('category.notFound'));
+    throw createHttpError(404, 'Category not found');
   }
 
   res.status(200).json({
     success: true,
-    message: req.t('category.retrievedById'),
+    message: 'Get category by id endpoint',
     category,
   });
 };
@@ -54,18 +53,16 @@ export const getCategoryById = async (req, res) => {
 export const createCategory = async (req, res) => {
   const { name } = req.body;
 
-  if (!name || !name.uk || !name.en) {
-    throw createHttpError(
-      400,
-      'The name object with uk and en fields is required',
-    );
+  if (!name) {
+    throw createHttpError(400, "The 'name' field is required");
   }
-  const existingCategory = await Category.findOne({
-    $or: [{ 'name.uk': name.uk }, { 'name.en': name.en }],
-  });
+
+  const existingCategory = await Category.findOne({ name });
+
   if (existingCategory) {
     throw createHttpError(409, 'A category with this name already exists');
   }
+
   const category = await Category.create({ name });
 
   res.status(201).json({
@@ -85,20 +82,20 @@ export const updateCategory = async (req, res) => {
       'At least one field must be selected for updating',
     );
   }
+
   if (name) {
-    const existingCategory = await Category.findOne({
-      _id: { $ne: id },
-      $or: [{ 'name.uk': name.uk }, { 'name.en': name.en }],
-    });
+    const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
     if (existingCategory) {
       throw createHttpError(409, 'A category with this name already exists');
     }
   }
+
   const category = await Category.findByIdAndUpdate(
     id,
     { name },
     { new: true, runValidators: true },
   );
+
   if (!category) {
     throw createHttpError(404, 'Category not found');
   }
@@ -114,6 +111,7 @@ export const deleteCategory = async (req, res) => {
   const { id } = req.params;
 
   const category = await Category.findByIdAndDelete(id);
+
   if (!category) {
     throw createHttpError(404, 'Category not found');
   }
@@ -133,7 +131,6 @@ export const updateCategoryImg = async (req, res) => {
     );
   }
   const { id } = req.params;
-
   const category = await Category.findById(id);
   if (!category) {
     throw createHttpError(400, 'Category not found');

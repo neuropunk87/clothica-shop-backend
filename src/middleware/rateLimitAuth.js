@@ -6,10 +6,10 @@ export const authLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: (req, res) => ({
+  message: {
     success: false,
-    error: req.t('rateLimit.auth'),
-  }),
+    error: 'Too many auth attempts from this IP. Please try again later.',
+  },
   keyGenerator: (req) => ipKeyGenerator(req),
 });
 

@@ -1,10 +1,12 @@
 import { Good } from '../models/good.js';
 import createHttpError from 'http-errors';
 
-const buildFilterQuery = (queryParams, lang) => {
+const buildFilterQuery = (queryParams) => {
   const { gender, size, color, minPrice, maxPrice, category, search } =
     queryParams;
+
   const filterConditions = [];
+
   if (gender) {
     filterConditions.push({ gender });
   }
@@ -26,22 +28,19 @@ const buildFilterQuery = (queryParams, lang) => {
     filterConditions.push({ 'price.value': priceCondition });
   }
   if (search) {
-    const searchField = `name.${lang}`;
-    filterConditions.push({ [searchField]: { $regex: search, $options: 'i' } });
+    filterConditions.push({ $text: { $search: search } });
   }
 
   return filterConditions.length > 0 ? { $and: filterConditions } : {};
 };
 
-const buildSortOrder = (sortBy, sortOrder, lang) => {
+const buildSortOrder = (sortBy, sortOrder) => {
   const order = sortOrder === 'desc' ? -1 : 1;
   const sortOrderObj = {};
   if (sortBy === 'popgoods') {
     sortOrderObj['feedbackCount'] = -1;
     sortOrderObj['averageRate'] = -1;
-    sortOrderObj[`name.${lang}`] = 1;
-  } else if (sortBy === 'name') {
-    sortOrderObj[`name.${lang}`] = order;
+    sortOrderObj['name'] = 1;
   } else {
     sortOrderObj[sortBy] = order;
   }
@@ -57,18 +56,15 @@ export const getAllGoods = async (req, res) => {
     sortOrder = 'asc',
   } = req.query;
 
-  const lang = req.i18n.language;
-  Good.schema.options.lang = lang;
-
   const pageNum = Number(page);
   const perPageNum = Number(perPage);
 
   if (pageNum < 1) {
-    throw createHttpError(400, req.t('errors.pageNumber'));
+    throw createHttpError(400, 'Page number must be greater than 0');
   }
   const skip = (pageNum - 1) * perPageNum;
-  const filters = buildFilterQuery(req.query, lang);
-  const sortOrderObj = buildSortOrder(sortBy, sortOrder, lang);
+  const filters = buildFilterQuery(req.query);
+  const sortOrderObj = buildSortOrder(sortBy, sortOrder);
 
   const [goods, totalItems] = await Promise.all([
     Good.find(filters)
@@ -76,14 +72,15 @@ export const getAllGoods = async (req, res) => {
       .sort(sortOrderObj)
       .skip(skip)
       .limit(perPageNum)
-      .lean({ virtuals: true }),
+      .lean(),
     Good.countDocuments(filters),
   ]);
+
   const totalPages = Math.ceil(totalItems / perPageNum);
 
   res.status(200).json({
     success: true,
-    message: req.t('good.retrieved'),
+    message: 'Goods retrieved successfully',
     data: goods,
     meta: {
       page: pageNum,
@@ -96,14 +93,8 @@ export const getAllGoods = async (req, res) => {
 
 export const getGoodById = async (req, res) => {
   const { id } = req.params;
-  const lang = req.i18n.language;
-  Good.schema.options.lang = lang;
-
-  const good = await Good.findById(id)
-    .populate('category', 'name slug')
-    .lean({ virtuals: true });
-  if (!good) throw createHttpError(404, req.t('good.notFound'));
-
+  const good = await Good.findById(id).populate('category', 'name slug').lean();
+  if (!good) throw createHttpError(404, 'Good not found');
   res.status(200).json({ success: true, data: good });
 };
 

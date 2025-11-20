@@ -5,10 +5,10 @@ export const searchRateLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: (req, res) => ({
+  message: {
     success: false,
-    error: req.t('rateLimit.search'),
-  }),
+    error: 'Too many search requests from this IP. Please slow down.',
+  },
   keyGenerator: (req) => req.user?._id?.toString() ?? ipKeyGenerator(req),
   skip: (req) => {
     const { search } = req.query;

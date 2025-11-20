@@ -4,13 +4,13 @@ import handlebars from 'handlebars';
 import { Subscription } from '../models/subscription.js';
 import { sendMail } from '../utils/sendMail.js';
 
-const sendWelcomeEmail = async (email, lang = 'uk', t) => {
+const sendWelcomeEmail = async (email) => {
   try {
-    const templateName =
-      lang === 'en'
-        ? 'subscription-welcome-en.html'
-        : 'subscription-welcome.html';
-    const templatePath = path.resolve('src', 'templates', templateName);
+    const templatePath = path.resolve(
+      'src',
+      'templates',
+      'subscription-welcome.html',
+    );
     const templateSource = await fs.readFile(templatePath, 'utf-8');
     const template = handlebars.compile(templateSource);
 
@@ -19,11 +19,9 @@ const sendWelcomeEmail = async (email, lang = 'uk', t) => {
       year: new Date().getFullYear(),
     });
 
-    const subject = t('subscription.welcomeSubject');
-
     await sendMail({
       to: email,
-      subject: subject,
+      subject: 'Вітаємо в Clothica! Дякуємо за підписку 🎉',
       html,
     });
     console.log(`Welcome email successfully queued for sending to ${email}`);
@@ -39,14 +37,14 @@ export const createSubscription = async (req, res) => {
 
   if (existingSubscription) {
     return res.status(200).json({
-      message: req.t('subscription.alreadySubscribed'),
+      message: 'You have successfully subscribed to our newsletter!',
     });
   }
   await Subscription.create({ email });
 
-  sendWelcomeEmail(email, req.i18n.language, req.t);
+  sendWelcomeEmail(email);
 
   res.status(201).json({
-    message: req.t('subscription.success'),
+    message: 'You have successfully subscribed to our newsletter!',
   });
 };

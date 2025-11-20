@@ -2,11 +2,7 @@ import { Feedback } from '../models/feedback.js';
 
 export const createFeedback = async (req, res, next) => {
   const feedback = await Feedback.create(req.body);
-  res.status(201).json({
-    success: true,
-    message: req.t('feedback.created'),
-    data: feedback,
-  });
+  res.status(201).json(feedback);
 };
 
 export const getAllFeedbacks = async (req, res, next) => {
@@ -19,41 +15,32 @@ export const getAllFeedbacks = async (req, res, next) => {
 
   const feedbackQuery = Feedback.find(filter);
 
-  const lang = req.i18n.language;
-  Feedback.schema.path('good').schema.options.lang = lang;
-  Feedback.schema.path('category').schema.options.lang = lang;
-
   feedbackQuery.populate({
     path: 'good',
-    select: 'name localizedName',
+    select: 'name',
   });
 
   feedbackQuery.populate({
     path: 'category',
-    select: 'name localizedName',
+    select: 'name',
   });
 
   const [feedbacks, total] = await Promise.all([
     feedbackQuery
       .sort({ createdAt: -1 })
       .skip((page - 1) * perPage)
-      .limit(perPage)
-      .lean({ virtuals: true }),
+      .limit(perPage),
     feedbackQuery.clone().countDocuments(),
   ]);
   const totalPages = Math.ceil(total / perPage);
 
   res.status(200).json({
-    success: true,
-    message: req.t('feedback.retrieved'),
-    data: {
-      feedbacks,
-      pagination: {
-        page,
-        perPage,
-        total,
-        totalPages,
-      },
+    feedbacks,
+    pagination: {
+      page,
+      perPage,
+      total,
+      totalPages,
     },
   });
 };
