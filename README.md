@@ -30,50 +30,69 @@ Backend API for Clothica built with Node.js, Express and MongoDB.
 clothica-shop-backend/
 ├── src/
 │   ├── server.js
+│   ├── admin/
+│   ├── admin.config.js
+│   ├── auth.js
+│   ├── resources.js
 │   ├── constants/
-│   │   ├── time.js
+│   │   ├── colors.js
+│   │   ├── orderStatuses.js
+│   │   └── time.js
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── userController.js
-│   │   ├── goodController.js
 │   │   ├── categoryController.js
+│   │   ├── goodController.js
 │   │   ├── orderController.js
-│   │   └── reviewController.js
+│   │   ├── feedbackController.js
+│   │   └── subscriptionController.js
 │   ├── db/
-│   │   ├── connectMongoDB.js
-│   ├── models/
-│   │   ├── user.js
-│   │   ├── session.js
-│   │   ├── good.js
-│   │   ├── category.js
-│   │   ├── order.js
-│   │   └── review.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── userRoutes.js
-│   │   ├── goodRoutes.js
-│   │   ├── categoryRoutes.js
-│   │   ├── orderRoutes.js
-│   │   └── reviewRoutes.js
-│   ├── services/
-│   │   └── auth.js
-│   ├── templates/
-│   │   └── reset-password-email.html
+│   │   └── connectMongoDB.js
 │   ├── middleware/
 │   │   ├── authenticate.js
 │   │   ├── logger.js
 │   │   ├── errorHandler.js
-│   │   └── notFoundHandler.js
+│   │   ├── notFoundHandler.js
 │   │   ├── rateLimitAuth.js
 │   │   ├── rateLimitSearch.js
+│   │   ├── requireAdmin.js
+│   │   ├── processCategoryFilter.js
 │   │   └── multer.js
-│   ├── validations/
-│   │   └── authValidation.js
+│   ├── models/
+│   │   ├── user.js
+│   │   ├── session.js
+│   │   ├── category.js
+│   │   ├── good.js
+│   │   ├── order.js
+│   │   ├── feedback.js
+│   │   ├── subscription.js
+│   │   └── counter.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── categoryRoutes.js
+│   │   ├── goodRoutes.js
+│   │   ├── orderRoutes.js
+│   │   ├── feedbackRoutes.js
+│   │   └── subscriptionRoutes.js
+│   ├── seeds/
+│   │   └── setCounter.js
+│   ├── services/
+│   │   ├── auth.js
+│   │   └── telegram.js
+│   ├── templates/
+│   │   └── reset-password-email.html
 │   ├── utils/
-│   │   └── ctrlWrapper.js
-│   │   └── saveFileToCloudinary.js
+│   │   ├── ctrlWrapper.js
+│   │   ├── modifyFileToCloudinary.js
 │   │   └── sendMail.js
-│   └── constants/
+│   ├── validations/
+│   │   ├── authValidation.js
+│   │   ├── categoriesValidation.js
+│   │   ├── goodsValidation.js
+│   │   ├── ordersValidation.js
+│   │   ├── feedbacksValidation.js
+│   └── └── subscriptionsValidation.js
 ├── config/
 │   └── swagger.js
 ├── .env.example
@@ -141,12 +160,26 @@ Once the server is running, access the Swagger documentation at:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `POST /api/auth/refresh`
+- `POST /api/auth/request-password-reset`
+- `POST /api/auth/reset-password`
 
 ### Users (Protected)
 
 - `GET /api/users/profile`
 - `PATCH /api/users/profile`
 - `DELETE /api/users/profile`
+- `GET /api/users/profile/telegram-link`
+
+### Categories
+
+- `GET /api/categories`
+- `GET /api/categories/:id`
+- `POST /api/categories`
+- `PATCH /api/categories/:id`
+- `DELETE /api/categories/:id`
+- `PATCH /api/categories/:id/img`
 
 ### Goods
 
@@ -156,29 +189,20 @@ Once the server is running, access the Swagger documentation at:
 - `PATCH /api/goods/:id`
 - `DELETE /api/goods/:id`
 
-### Categories
-
-- `GET /api/categories`
-- `GET /api/categories/:id`
-- `POST /api/categories`
-- `PATCH /api/categories/:id`
-- `DELETE /api/categories/:id`
-
 ### Orders (All Protected)
 
 - `GET /api/orders`
-- `GET /api/orders/:id`
 - `POST /api/orders`
-- `PATCH /api/orders/:id`
-- `DELETE /api/orders/:id`
+- `PATCH /api/orders/:id/status`
 
-### Reviews
+### Feedbacks
 
-- `GET /api/reviews`
-- `GET /api/reviews/:id`
-- `POST /api/reviews`
-- `PATCH /api/reviews/:id`
-- `DELETE /api/reviews/:id`
+- `GET /api/feedbacks`
+- `POST /api/feedbacks`
+
+### Subscriptions
+
+- `POST /api/subscriptions`
 
 ## Security Features
 
@@ -208,12 +232,12 @@ Authentication endpoints (`/register` and `/login`) are rate-limited to 10 reque
 ### Registration
 
 - **name**: Required, string, max 32 characters
-- **email**: Required, valid email format, max 64 characters
+- **phone**: Required, string, max 13 characters
 - **password**: Required, string, min 8 characters, max 128 characters
 
 ### Login
 
-- **email**: Required, valid email format
+- **phone**: Required, string, max 13 characters
 - **password**: Required, string
 
 ## Error Handling

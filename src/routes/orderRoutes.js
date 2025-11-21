@@ -78,6 +78,20 @@ const router = Router();
 /**
  * @swagger
  * /api/orders:
+ *   get:
+ *     summary: Get orders for current user
+ *     tags: [Orders]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's orders
+ */
+router.get(`/orders`, authenticate, ctrlWrapper(getUserOrders));
+
+/**
+ * @swagger
+ * /api/orders:
  *   post:
  *     summary: Create a new order (public or authenticated)
  *     tags: [Orders]
@@ -98,20 +112,6 @@ const router = Router();
  *         description: Validation error
  */
 router.post(`/orders`, celebrate(createOrderSchema), ctrlWrapper(createOrder));
-
-/**
- * @swagger
- * /api/orders:
- *   get:
- *     summary: Get orders for current user
- *     tags: [Orders]
- *     security:
- *       - cookieAuth: []
- *     responses:
- *       200:
- *         description: List of user's orders
- */
-router.get(`/orders`, authenticate, ctrlWrapper(getUserOrders));
 
 /**
  * @swagger
