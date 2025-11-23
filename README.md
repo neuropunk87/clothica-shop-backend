@@ -31,9 +31,9 @@ clothica-shop-backend/
 ├── src/
 │   ├── server.js
 │   ├── admin/
-│   ├── admin.config.js
-│   ├── auth.js
-│   ├── resources.js
+│   │   ├── admin.config.js
+│   │   ├── auth.js
+│   │   └── resources.js
 │   ├── constants/
 │   │   ├── colors.js
 │   │   ├── orderStatuses.js
