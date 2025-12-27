@@ -14,7 +14,7 @@
     "express-formidable": "^1.2.0",
     "express-session": "^1.17.3",
     "@adminjs/mongoose": "^4.1.0",
-    "mongoose": "^8.0.0"
+    "mongoose": "^8.20.2"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
