@@ -4,6 +4,14 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
   {
+    ignores: [
+      '.adminjs/**',
+      'clothica-shop/dist/**',
+      'coverage/**',
+      'node_modules/**',
+    ],
+  },
+  {
     files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },
     extends: ['js/recommended'],
