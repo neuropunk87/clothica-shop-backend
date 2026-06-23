@@ -84,7 +84,7 @@ export const setupTelegramWebhook = async () => {
     : undefined;
 
   try {
-    await bot.setWebHook(webhookUrl, webhookOptions);
+    await bot.setWebhook(webhookUrl, webhookOptions);
     console.log('✅ Telegram webhook set up');
   } catch (error) {
     console.error('❌ Failed to set Telegram webhook:', error.message);
