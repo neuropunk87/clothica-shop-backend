@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
+import { publicWriteLimiter } from '../middleware/rateLimitApi.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { createSubscription } from '../controllers/subscriptionController.js';
 import { createSubscriptionSchema } from '../validations/subscriptionsValidation.js';
@@ -45,6 +46,7 @@ const router = Router();
  */
 router.post(
   '/subscriptions',
+  publicWriteLimiter,
   celebrate(createSubscriptionSchema),
   ctrlWrapper(createSubscription),
 );

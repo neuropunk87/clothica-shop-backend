@@ -1,13 +1,15 @@
 import { Joi, Segments } from 'celebrate';
 
+const passwordSchema = Joi.string().min(10).max(128);
+
 export const registerUserSchema = {
   [Segments.BODY]: Joi.object({
-    name: Joi.string().max(32).required(),
+    name: Joi.string().trim().min(3).max(32).required(),
     phone: Joi.string()
       .pattern(/^\+380\d{9}$/)
       .max(13)
       .required(),
-    password: Joi.string().min(8).max(128).required(),
+    password: passwordSchema.required(),
   }),
 };
 
@@ -36,6 +38,6 @@ export const resetPasswordSchema = {
       .pattern(/^\+380\d{9}$/)
       .required(),
     code: Joi.string().length(6).required(),
-    password: Joi.string().min(8).max(128).required(),
+    password: passwordSchema.required(),
   }),
 };

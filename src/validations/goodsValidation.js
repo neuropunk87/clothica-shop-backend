@@ -42,9 +42,9 @@ export const getGoodsSchema = {
     }),
     minPrice: Joi.number().positive(),
     maxPrice: Joi.number().positive(),
-    name: Joi.string().trim().min(1),
+    name: Joi.string().trim().min(1).max(128),
     category: Joi.string().custom(objectIdValidator).trim().min(1),
-    search: Joi.string().allow(''),
+    search: Joi.string().trim().max(128).allow(''),
     sortBy: Joi.string().valid('price', 'name', 'popgoods').default('price'),
     sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
   }),
@@ -58,7 +58,7 @@ export const getGoodByIdSchema = {
 
 export const createGoodSchema = {
   [Segments.BODY]: Joi.object({
-    name: Joi.string().required().trim(),
+    name: Joi.string().required().trim().max(128),
     category: Joi.string().custom(objectIdValidator).required(),
     image: Joi.string().uri().trim(),
     price: Joi.object({
@@ -69,10 +69,10 @@ export const createGoodSchema = {
       Joi.string().valid('XS', 'S', 'M', 'L', 'XL', 'XXL'),
     ),
     colors: Joi.array().items(Joi.string().valid(...AVAILABLE_COLORS)),
-    description: Joi.string().trim(),
-    prevDescription: Joi.string().trim(),
+    description: Joi.string().trim().max(5000),
+    prevDescription: Joi.string().trim().max(5000),
     gender: Joi.string().valid('women', 'unisex', 'man'),
-    characteristics: Joi.array().items(Joi.string()),
+    characteristics: Joi.array().items(Joi.string().trim().max(512)).max(50),
   }),
 };
 
@@ -81,8 +81,8 @@ export const updateGoodSchema = {
     id: Joi.string().custom(objectIdValidator).required(),
   }),
   [Segments.BODY]: Joi.object({
-    name: Joi.string().trim(),
-    category: Joi.string().custom(objectIdValidator).required(),
+    name: Joi.string().trim().max(128),
+    category: Joi.string().custom(objectIdValidator),
     image: Joi.string().uri().trim(),
     price: Joi.object({
       value: Joi.number().min(0),
@@ -92,9 +92,9 @@ export const updateGoodSchema = {
       Joi.string().valid('XS', 'S', 'M', 'L', 'XL', 'XXL'),
     ),
     colors: Joi.array().items(Joi.string().valid(...AVAILABLE_COLORS)),
-    description: Joi.string().trim(),
-    prevDescription: Joi.string().trim(),
+    description: Joi.string().trim().max(5000),
+    prevDescription: Joi.string().trim().max(5000),
     gender: Joi.string().valid('women', 'unisex', 'man'),
-    characteristics: Joi.array().items(Joi.string()),
+    characteristics: Joi.array().items(Joi.string().trim().max(512)).max(50),
   }).min(1),
 };
