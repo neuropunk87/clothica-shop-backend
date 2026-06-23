@@ -1,6 +1,24 @@
 export const errorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   if (process.env.NODE_ENV !== 'production') {
     console.error('Error:', err);
+  }
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: 'Request body is too large',
+    });
+  }
+
+  if (err.name === 'MulterError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid file upload',
+    });
   }
 
   if (err.name === 'ValidationError') {
@@ -18,6 +36,13 @@ export const errorHandler = (err, req, res, next) => {
       success: false,
       message: 'Validation error',
       errors,
+    });
+  }
+
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid resource identifier',
     });
   }
 

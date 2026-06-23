@@ -11,9 +11,11 @@ i18next
     },
     fallbackLng: 'uk',
     preload: ['uk', 'en'],
+    supportedLngs: ['uk', 'en'],
+    cleanCode: true,
     detection: {
-      order: ['header', 'querystring', 'cookie'],
-      caches: ['cookie'],
+      order: ['header', 'querystring'],
+      caches: [],
       lookupHeader: 'accept-language',
     },
   });

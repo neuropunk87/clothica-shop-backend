@@ -1,6 +1,12 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { FIFTEEN_MINUTES } from '../constants/time.js';
 
+const getPhoneScopedKey = (req) => {
+  const ipKey = ipKeyGenerator(req.ip);
+  const phone = typeof req.body?.phone === 'string' ? req.body.phone : 'none';
+  return `${ipKey}:${phone}`;
+};
+
 export const authLimiter = rateLimit({
   windowMs: FIFTEEN_MINUTES,
   max: 10,
@@ -10,7 +16,19 @@ export const authLimiter = rateLimit({
     success: false,
     error: 'Too many auth attempts from this IP. Please try again later.',
   },
-  keyGenerator: (req) => ipKeyGenerator(req),
+  keyGenerator: getPhoneScopedKey,
+});
+
+export const passwordResetLimiter = rateLimit({
+  windowMs: FIFTEEN_MINUTES,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many password reset attempts. Please try again later.',
+  },
+  keyGenerator: getPhoneScopedKey,
 });
 
 // ------------------------------------------------------------------
