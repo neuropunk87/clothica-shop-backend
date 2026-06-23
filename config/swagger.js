@@ -6,7 +6,8 @@ const options = {
     info: {
       title: 'Clothica API',
       version: '1.0.0',
-      description: 'Backend API for Clothica',
+      description:
+        'Backend API for Clothica. Authentication uses HTTP-only session cookies; Swagger UI is enabled in development and can be enabled in production with ENABLE_SWAGGER=true.',
     },
     servers: [
       {
@@ -24,6 +25,8 @@ const options = {
           type: 'apiKey',
           in: 'cookie',
           name: 'accessToken',
+          description:
+            'HTTP-only accessToken cookie set by /api/auth/register, /api/auth/login and /api/auth/refresh.',
         },
       },
     },
