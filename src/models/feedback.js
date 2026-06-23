@@ -4,6 +4,13 @@ import { Good } from './good.js';
 const feedbackSchema = new Schema(
   {
     author: { type: String, required: true, trim: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+      default: null,
+      index: true,
+    },
     rate: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true, trim: true },
     good: { type: Schema.Types.ObjectId, ref: 'Good', required: true },

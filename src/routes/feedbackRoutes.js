@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
+import { publicWriteLimiter } from '../middleware/rateLimitApi.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import {
   createFeedback,
@@ -27,9 +28,13 @@ const router = Router();
  *           type: string
  *         userId:
  *           type: string
- *         goodId:
+ *         author:
  *           type: string
- *         rating:
+ *         good:
+ *           type: string
+ *         category:
+ *           type: string
+ *         rate:
  *           type: integer
  *         comment:
  *           type: string
@@ -88,36 +93,39 @@ router.get(
  * @swagger
  * /api/feedbacks:
  *   post:
- *     summary: Create a new feedback (authenticated)
+ *     summary: Create a new feedback (public)
  *     tags: [Feedbacks]
- *     security:
- *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [goodId, rating]
+ *             required: [author, rate, comment, good, category]
  *             properties:
- *               goodId:
+ *               author:
  *                 type: string
- *               rating:
+ *               rate:
  *                 type: integer
  *                 minimum: 1
  *                 maximum: 5
  *               comment:
+ *                 type: string
+ *               good:
+ *                 type: string
+ *               category:
  *                 type: string
  *     responses:
  *       201:
  *         description: Feedback created successfully
  *       400:
  *         description: Validation error
- *       401:
- *         description: Unauthorized
+ *       429:
+ *         description: Too many public submissions
  */
 router.post(
   '/feedbacks',
+  publicWriteLimiter,
   celebrate(createFeedbackSchema),
   ctrlWrapper(createFeedback),
 );

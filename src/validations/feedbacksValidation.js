@@ -8,9 +8,9 @@ const objectIdValidator = (value, helpers) => {
 
 export const createFeedbackSchema = {
   [Segments.BODY]: Joi.object({
-    author: Joi.string().min(2).required(),
+    author: Joi.string().trim().min(2).max(64).required(),
     rate: Joi.number().integer().min(1).max(5).required(),
-    comment: Joi.string().min(2).required(),
+    comment: Joi.string().trim().min(2).max(1000).required(),
     good: Joi.string().custom(objectIdValidator).required(),
     category: Joi.string().custom(objectIdValidator).required(),
   }),

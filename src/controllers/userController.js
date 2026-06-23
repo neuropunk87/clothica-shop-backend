@@ -1,7 +1,11 @@
 import createHttpError from 'http-errors';
+import crypto from 'node:crypto';
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
-import { clearSessionCookies } from '../services/auth.js';
+import {
+  clearSessionCookies,
+  hashTelegramLinkToken,
+} from '../services/auth.js';
 import {
   saveFileToCloudinary,
   deleteFileFromCloudinary,
@@ -37,6 +41,7 @@ export const updateProfile = async (req, res) => {
   }
   const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
     new: true,
+    runValidators: true,
   });
   res.status(200).json({
     success: true,
@@ -93,12 +98,19 @@ export const updateUserAvatar = async (req, res) => {
   });
 };
 
-export const getTelegramLink = (req, res) => {
+export const getTelegramLink = async (req, res) => {
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
   if (!botUsername) {
     throw createHttpError(500, 'Telegram bot is not configured on the server');
   }
-  const link = `https://t.me/${botUsername}?start=${req.user._id}`;
+  const linkToken = crypto.randomBytes(32).toString('base64url');
+
+  await User.findByIdAndUpdate(req.user._id, {
+    telegramLinkTokenHash: hashTelegramLinkToken(linkToken),
+    telegramLinkTokenExpires: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  const link = `https://t.me/${botUsername}?start=${linkToken}`;
 
   res.status(200).json({
     success: true,

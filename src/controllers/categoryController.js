@@ -51,7 +51,7 @@ export const getCategoryById = async (req, res) => {
 };
 
 export const createCategory = async (req, res) => {
-  const { name } = req.body;
+  const { name, description = '' } = req.body;
 
   if (!name) {
     throw createHttpError(400, "The 'name' field is required");
@@ -63,7 +63,7 @@ export const createCategory = async (req, res) => {
     throw createHttpError(409, 'A category with this name already exists');
   }
 
-  const category = await Category.create({ name });
+  const category = await Category.create({ name, description });
 
   res.status(201).json({
     success: true,
@@ -75,8 +75,14 @@ export const createCategory = async (req, res) => {
 export const updateCategory = async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
+  const updates = {};
 
-  if (!name) {
+  if (req.body.name !== undefined) updates.name = req.body.name;
+  if (req.body.description !== undefined) {
+    updates.description = req.body.description;
+  }
+
+  if (Object.keys(updates).length === 0) {
     throw createHttpError(
       400,
       'At least one field must be selected for updating',
@@ -92,7 +98,7 @@ export const updateCategory = async (req, res) => {
 
   const category = await Category.findByIdAndUpdate(
     id,
-    { name },
+    updates,
     { new: true, runValidators: true },
   );
 

@@ -1,7 +1,10 @@
 import { Feedback } from '../models/feedback.js';
 
 export const createFeedback = async (req, res, next) => {
-  const feedback = await Feedback.create(req.body);
+  const feedback = await Feedback.create({
+    ...req.body,
+    userId: req.user?._id ?? null,
+  });
   res.status(201).json(feedback);
 };
 

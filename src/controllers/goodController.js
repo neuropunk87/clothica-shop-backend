@@ -109,7 +109,10 @@ export const createGood = async (req, res) => {
 
 export const updateGood = async (req, res) => {
   const { id } = req.params;
-  const updatedGood = await Good.findByIdAndUpdate(id, req.body, { new: true });
+  const updatedGood = await Good.findByIdAndUpdate(id, req.body, {
+    new: true,
+    runValidators: true,
+  });
   if (!updatedGood) throw createHttpError(404, 'Good not found');
   res.status(200).json({ success: true, data: updatedGood });
 };

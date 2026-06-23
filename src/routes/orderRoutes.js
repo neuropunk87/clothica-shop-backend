@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate } from 'celebrate';
 import { authenticate } from '../middleware/authenticate.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { publicWriteLimiter } from '../middleware/rateLimitApi.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import {
   createOrder,
@@ -23,53 +24,52 @@ const router = Router();
  *
  * components:
  *   schemas:
- *     OrderItem:
+ *     OrderGood:
  *       type: object
- *       required: [goodId, quantity]
+ *       required: [goodId, amount, size]
  *       properties:
  *         goodId:
  *           type: string
- *         quantity:
+ *         amount:
  *           type: integer
+ *           minimum: 1
+ *         size:
+ *           type: string
+ *           enum: [XS, S, M, L, XL, XXL]
  *     CreateOrder:
  *       type: object
- *       required: [items, customer]
+ *       required: [goods, sum, userName, userLastName, userPhone, city, branchnum_np]
  *       properties:
- *         items:
+ *         goods:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/OrderItem'
- *         customer:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *             lastname:
- *               type: string
- *             phone:
- *               type: string
- *             city:
- *               type: string
- *             branchnum_np:
- *               type: string
- *         payment:
- *           type: object
- *           properties:
- *             method:
- *               type: string
- *               example: 'card'
- *             transactionId:
- *               type: string
+ *             $ref: '#/components/schemas/OrderGood'
+ *         sum:
+ *           type: number
+ *           description: Accepted for client compatibility; server recalculates the final sum from current product prices.
+ *         userName:
+ *           type: string
+ *         userLastName:
+ *           type: string
+ *         userPhone:
+ *           type: string
+ *           example: "+380991234567"
+ *         city:
+ *           type: string
+ *         branchnum_np:
+ *           type: string
+ *         comment:
+ *           type: string
  *     OrderResponse:
  *       type: object
  *       properties:
  *         _id:
  *           type: string
- *         items:
+ *         goods:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/OrderItem'
- *         total:
+ *             $ref: '#/components/schemas/OrderGood'
+ *         sum:
  *           type: number
  *         status:
  *           type: string
@@ -111,7 +111,12 @@ router.get(`/orders`, authenticate, ctrlWrapper(getUserOrders));
  *       400:
  *         description: Validation error
  */
-router.post(`/orders`, celebrate(createOrderSchema), ctrlWrapper(createOrder));
+router.post(
+  `/orders`,
+  publicWriteLimiter,
+  celebrate(createOrderSchema),
+  ctrlWrapper(createOrder),
+);
 
 /**
  * @swagger

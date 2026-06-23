@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
 import { authenticate } from '../middleware/authenticate.js';
-import { authLimiter } from '../middleware/rateLimitAuth.js';
+import {
+  authLimiter,
+  passwordResetLimiter,
+} from '../middleware/rateLimitAuth.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import {
   registerUser,
@@ -173,7 +176,7 @@ router.post('/auth/refresh', ctrlWrapper(refreshUserSession));
  */
 router.post(
   '/auth/request-password-reset',
-  authLimiter,
+  passwordResetLimiter,
   celebrate(requestPasswordResetSchema),
   ctrlWrapper(requestPasswordReset),
 );
@@ -198,6 +201,7 @@ router.post(
  */
 router.post(
   '/auth/reset-password',
+  passwordResetLimiter,
   celebrate(resetPasswordSchema),
   ctrlWrapper(resetPassword),
 );

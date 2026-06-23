@@ -20,3 +20,20 @@ export const categoryIdParamSchema = {
     id: Joi.string().custom(objectIdValidator).required(),
   }),
 };
+
+export const createCategorySchema = {
+  [Segments.BODY]: Joi.object({
+    name: Joi.string().trim().min(2).max(64).required(),
+    description: Joi.string().trim().max(1000).allow(''),
+  }),
+};
+
+export const updateCategorySchema = {
+  [Segments.PARAMS]: Joi.object({
+    id: Joi.string().custom(objectIdValidator).required(),
+  }),
+  [Segments.BODY]: Joi.object({
+    name: Joi.string().trim().min(2).max(64),
+    description: Joi.string().trim().max(1000).allow(''),
+  }).min(1),
+};

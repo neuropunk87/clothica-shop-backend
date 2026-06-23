@@ -1,276 +1,189 @@
-# Clothica Backend API
+# Clothica Shop Backend
 
-Backend API for Clothica built with Node.js, Express and MongoDB.
+Production-oriented backend for the Clothica e-commerce platform. The project exposes a public REST API, a protected AdminJS back office, MongoDB persistence, Telegram account/password flows, Cloudinary image uploads and Resend email delivery.
 
-## Features
+## Current Stack
 
-- 🔐 JWT Authentication (Access & Refresh Tokens)
-- 🛡️ Security (Helmet, CORS, Rate Limiting)
-- ✅ Request Validation (Celebrate/Joi)
-- 📚 API Documentation (Swagger)
-- 🏗️ Functional Architecture
-- 🔄 Centralized Error Handling
+- Runtime: Node.js, ES Modules
+- API: Express 5
+- Database: MongoDB with Mongoose 8
+- Admin: AdminJS 7 with Mongo-backed sessions
+- Auth: opaque cookie sessions stored as server-side HMAC hashes
+- Validation: Celebrate/Joi
+- Security: Helmet, CORS allowlist, Origin/Referer CSRF checks, rate limiting, redacted logs
+- Integrations: Telegram Bot API, Cloudinary, Resend
+- Documentation: Swagger UI, Markdown docs
 
-## Tech Stack
+## Documentation
 
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Database:** MongoDB with Mongoose
-- **Authentication:** JWT (jsonwebtoken)
-- **Password Hashing:** bcrypt
-- **Validation:** Celebrate (Joi wrapper)
-- **Security:** Helmet, CORS, express-rate-limit
-- **Documentation:** Swagger (swagger-jsdoc, swagger-ui-express)
-- **Module System:** ES Modules (type: "module")
-- **Architecture:** Functional Programming
+- [API Reference](docs/API.md)
+- [Security Guide](docs/SECURITY.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Architecture Guide](docs/ARCHITECTURE.md)
 
-## Project Structure
+Swagger is available at `/api-docs` in development. In production it is disabled by default and can be enabled with `ENABLE_SWAGGER=true`.
 
-```
-clothica-shop-backend/
-├── src/
-│   ├── server.js
-│   ├── admin/
-│   │   ├── admin.config.js
-│   │   ├── auth.js
-│   │   └── resources.js
-│   ├── constants/
-│   │   ├── colors.js
-│   │   ├── orderStatuses.js
-│   │   └── time.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── userController.js
-│   │   ├── categoryController.js
-│   │   ├── goodController.js
-│   │   ├── orderController.js
-│   │   ├── feedbackController.js
-│   │   └── subscriptionController.js
-│   ├── db/
-│   │   └── connectMongoDB.js
-│   ├── middleware/
-│   │   ├── authenticate.js
-│   │   ├── logger.js
-│   │   ├── errorHandler.js
-│   │   ├── notFoundHandler.js
-│   │   ├── rateLimitAuth.js
-│   │   ├── rateLimitSearch.js
-│   │   ├── requireAdmin.js
-│   │   ├── processCategoryFilter.js
-│   │   └── multer.js
-│   ├── models/
-│   │   ├── user.js
-│   │   ├── session.js
-│   │   ├── category.js
-│   │   ├── good.js
-│   │   ├── order.js
-│   │   ├── feedback.js
-│   │   ├── subscription.js
-│   │   └── counter.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── userRoutes.js
-│   │   ├── categoryRoutes.js
-│   │   ├── goodRoutes.js
-│   │   ├── orderRoutes.js
-│   │   ├── feedbackRoutes.js
-│   │   └── subscriptionRoutes.js
-│   ├── seeds/
-│   │   └── setCounter.js
-│   ├── services/
-│   │   ├── auth.js
-│   │   └── telegram.js
-│   ├── templates/
-│   │   └── reset-password-email.html
-│   ├── utils/
-│   │   ├── ctrlWrapper.js
-│   │   ├── modifyFileToCloudinary.js
-│   │   └── sendMail.js
-│   ├── validations/
-│   │   ├── authValidation.js
-│   │   ├── categoriesValidation.js
-│   │   ├── goodsValidation.js
-│   │   ├── ordersValidation.js
-│   │   ├── feedbacksValidation.js
-│   └── └── subscriptionsValidation.js
-├── config/
-│   └── swagger.js
-├── .env.example
-├── .gitignore
-├── package.json
-└── README.md
-```
+## Main Entry Points
 
-## Getting Started
+| Surface | Path | Purpose |
+| --- | --- | --- |
+| Public/API | `/api/*` | Storefront API for auth, catalog, orders, feedbacks and subscriptions |
+| Admin panel | `/admin` | AdminJS back office for users, goods, categories, orders and other resources |
+| Swagger UI | `/api-docs` | Interactive API documentation, development-first |
+| Telegram webhook | `/api/telegram/webhook/:webhookSecret` | Telegram Bot API webhook with header secret verification |
 
-### Prerequisites
-
-- Node.js (v14 or higher)
-- MongoDB (local or cloud instance)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone <repository-url>
-cd clothica-shop-backend
-```
-
-2. Install dependencies:
+## Quick Start
 
 ```bash
 npm install
-```
-
-3. Create environment file:
-
-```bash
 cp .env.example .env
-```
-
-4. Configure environment variables in `.env`.
-
-### Running the Application
-
-Development mode with auto-restart:
-
-```bash
 npm run dev
 ```
 
-Production mode:
+The API starts on `PORT` or `3030` by default. Configure MongoDB and secrets in `.env` before using protected flows.
+
+## Required Local Services
+
+- MongoDB instance
+- Telegram bot only if account linking/password reset is needed
+- Cloudinary only if category/avatar image uploads are used
+- Resend only if newsletter welcome emails should be sent
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start API with nodemon |
+| `npm start` | Start API with Node |
+| `npm run create-admin` | Create or update an admin user from env variables |
+| `npm run lint:check` | Run ESLint for the backend |
+| `npm run audit:security` | Run high-severity npm audit |
+| `npm test` | Placeholder, no automated test suite is currently configured |
+
+Nested AdminJS package:
 
 ```bash
+cd clothica-shop
+npm install
+npm run build
+npm run lint
 npm start
 ```
 
-## API Documentation
+## Admin User Creation
 
-Once the server is running, access the Swagger documentation at:
+If an admin already exists in MongoDB, this step is not required for normal
+startup. Use it only for first-time bootstrap or emergency password recovery.
 
-```
-/api-docs
-```
+Set these variables in `.env` or in the current shell:
 
-## API Endpoints
-
-### Authentication
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `POST /api/auth/refresh`
-- `POST /api/auth/request-password-reset`
-- `POST /api/auth/reset-password`
-
-### Users (Protected)
-
-- `GET /api/users/profile`
-- `PATCH /api/users/profile`
-- `DELETE /api/users/profile`
-- `GET /api/users/profile/telegram-link`
-
-### Categories
-
-- `GET /api/categories`
-- `GET /api/categories/:id`
-- `POST /api/categories`
-- `PATCH /api/categories/:id`
-- `DELETE /api/categories/:id`
-- `PATCH /api/categories/:id/img`
-
-### Goods
-
-- `GET /api/goods`
-- `GET /api/goods/:id`
-- `POST /api/goods`
-- `PATCH /api/goods/:id`
-- `DELETE /api/goods/:id`
-
-### Orders (All Protected)
-
-- `GET /api/orders`
-- `POST /api/orders`
-- `PATCH /api/orders/:id/status`
-
-### Feedbacks
-
-- `GET /api/feedbacks`
-- `POST /api/feedbacks`
-
-### Subscriptions
-
-- `POST /api/subscriptions`
-
-## Security Features
-
-### Rate Limiting
-
-Authentication endpoints (`/register` and `/login`) are rate-limited to 10 requests per 15 minutes per IP address to prevent brute-force attacks.
-
-### Password Security
-
-- Passwords are hashed using bcrypt with salt rounds
-- Minimum password length: 8 characters
-- Maximum password length: 128 characters
-
-### JWT Authentication
-
-- Access tokens expire in 15 minutes
-- Refresh tokens expire in 1 day
-- Tokens are verified on protected routes
-
-### HTTP Security
-
-- Helmet middleware sets secure HTTP headers
-- CORS configured for cross-origin requests
-
-## Validation Rules
-
-### Registration
-
-- **name**: Required, string, max 32 characters
-- **phone**: Required, string, max 13 characters
-- **password**: Required, string, min 8 characters, max 128 characters
-
-### Login
-
-- **phone**: Required, string, max 13 characters
-- **password**: Required, string
-
-## Error Handling
-
-The API uses centralized error handling with consistent error responses:
-
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "errors": [...]  // Optional validation errors
-}
+```env
+ADMIN_PHONE=+380991234567
+ADMIN_PASSWORD=replace-with-a-strong-password
+# Optional. Existing users keep their current name when ADMIN_NAME is omitted.
+ADMIN_NAME=Admin
 ```
 
-Common HTTP status codes:
+Then run:
 
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request (validation errors)
-- `401` - Unauthorized
-- `404` - Not Found
-- `409` - Conflict (duplicate resource)
-- `429` - Too Many Requests (rate limit exceeded)
-- `500` - Internal Server Error
+```bash
+npm run create-admin
+```
 
-## Development Notes
+The script hashes the password with the same bcrypt policy used by the API and
+upserts the user with `role: "admin"`. For existing users it updates the
+password and role; it updates the name only when `ADMIN_NAME` is provided.
 
-### Architecture
+## Authentication Model
 
-This project follows a **functional programming approach**:
+The API does not use JWTs. Authentication is cookie-based:
 
-- **Controllers**: Pure functions that handle requests and responses
-- **Services**: Pure functions that contain business logic
-- **Models**: Mongoose schemas with named exports
-- **Middleware**: Functions for request processing
-- **Error Handling**: Centralized with `ctrlWrapper` utility
+- `accessToken`: HTTP-only short-lived token
+- `refreshToken`: HTTP-only refresh token
+- `sessionId`: HTTP-only session identifier
+
+Only HMAC hashes of access/refresh tokens are stored in MongoDB. Session refresh rotates tokens and replaces the old session.
+
+## Security Highlights
+
+- Production startup fails if required secrets are missing or weak.
+- CORS is allowlisted in production.
+- Mutating requests are protected by Origin/Referer CSRF checks.
+- AdminJS uses Mongo-backed sessions, secure cookies and login attempt rate limiting.
+- Password reset codes and Telegram link tokens are stored as HMAC hashes.
+- Telegram webhooks require both a secret URL segment and the Telegram secret header.
+- Public write endpoints are rate-limited.
+- Uploads accept only whitelisted image MIME types/extensions.
+- Request logs redact cookies, auth headers and Telegram webhook secrets.
+
+Read the full [Security Guide](docs/SECURITY.md) before production deployment.
+
+## API Overview
+
+| Resource | Public | Authenticated | Admin |
+| --- | --- | --- | --- |
+| Auth | register, login, refresh, password reset request/submit | logout | - |
+| Users | - | profile read/update/delete, Telegram link | - |
+| Categories | list, details | - | create, update, delete, image upload |
+| Goods | list, details | - | create, update, delete |
+| Orders | create | current user's orders | update status |
+| Feedbacks | list, create as guest | optional future user association | - |
+| Subscriptions | subscribe | - | AdminJS resource |
+
+Orders are public to create, but the final `sum` is recalculated server-side from current product prices. Client-provided order totals are accepted only for compatibility and are not trusted.
+
+## Environment
+
+Use `.env.example` as the canonical list of supported variables. Production requires at least:
+
+- `NODE_ENV=production`
+- `MONGO_URL`
+- `ADMIN_SESSION_SECRET`
+- `ADMIN_COOKIE_SECRET`
+- `SESSION_TOKEN_SECRET`
+- at least one frontend/backend origin via `CLIENT_URL`, `CLIENT_URLS`, `API_URL`, `BACKEND_URL` or `RENDER_EXTERNAL_URL`
+
+Telegram production webhooks additionally require:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_WEBHOOK_SECRET`
+- `RENDER_EXTERNAL_URL`
+
+See [Deployment Guide](docs/DEPLOYMENT.md) for the complete table and deployment checklist.
+
+## Project Structure
+
+```text
+clothica-shop-backend/
+├── config/                 # Swagger configuration
+├── docs/                   # Human-readable project documentation
+├── public/                 # Static assets used by AdminJS/API
+├── src/
+│   ├── admin/              # AdminJS resources and auth
+│   ├── config/             # i18n and security config
+│   ├── constants/          # Shared constants
+│   ├── controllers/        # Request handlers
+│   ├── db/                 # MongoDB connection
+│   ├── middleware/         # Auth, security, logging, rate limiting
+│   ├── models/             # Mongoose models
+│   ├── routes/             # Express routers and Swagger comments
+│   ├── scripts/            # Operational scripts
+│   ├── services/           # Auth, Telegram and integration logic
+│   ├── templates/          # Email templates
+│   ├── utils/              # Shared helpers
+│   └── validations/        # Celebrate/Joi schemas
+└── clothica-shop/          # Standalone AdminJS runtime package
+```
+
+## Verification Commands
+
+```bash
+npm run lint:check
+npm run audit:security
+cd clothica-shop
+npm run lint
+npm run build
+npm audit --audit-level=high
+```
+
+At the time of this documentation update, both root and nested package audits report `found 0 vulnerabilities`.

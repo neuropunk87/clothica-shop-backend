@@ -15,6 +15,8 @@ import {
 import {
   getCategoriesSchema,
   categoryIdParamSchema,
+  createCategorySchema,
+  updateCategorySchema,
 } from '../validations/categoriesValidation.js';
 
 const router = Router();
@@ -140,6 +142,7 @@ router.post(
   '/categories',
   authenticate,
   requireAdmin,
+  celebrate(createCategorySchema),
   ctrlWrapper(createCategory),
 );
 
@@ -179,6 +182,7 @@ router.patch(
   '/categories/:id',
   authenticate,
   requireAdmin,
+  celebrate(updateCategorySchema),
   ctrlWrapper(updateCategory),
 );
 
@@ -208,6 +212,7 @@ router.delete(
   '/categories/:id',
   authenticate,
   requireAdmin,
+  celebrate(categoryIdParamSchema),
   ctrlWrapper(deleteCategory),
 );
 
@@ -268,6 +273,7 @@ router.patch(
   '/categories/:id/img',
   authenticate,
   requireAdmin,
+  celebrate(categoryIdParamSchema),
   upload.single('img'),
   ctrlWrapper(updateCategoryImg),
 );

@@ -1,5 +1,10 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { User } from '../models/user.js';
+import {
+  encodedTelegramWebhookPathSecret,
+  isProd,
+} from '../config/security.js';
+import { hashTelegramLinkToken } from './auth.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 let bot;
@@ -9,21 +14,30 @@ if (token) {
 
   bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const userId = match[1];
+    const linkToken = match[1];
 
-    if (userId) {
+    if (linkToken) {
       try {
-        const user = await User.findById(userId);
+        const user = await User.findOne({
+          telegramLinkTokenHash: hashTelegramLinkToken(linkToken),
+          telegramLinkTokenExpires: { $gt: new Date() },
+        }).select('+telegramLinkTokenHash');
+
         if (!user) {
-          return bot.sendMessage(chatId, '❌ Помилка: Користувач не знайдений');
+          return bot.sendMessage(
+            chatId,
+            '❌ Помилка: посилання недійсне або прострочене',
+          );
         }
         if (user.telegramLinked) {
           return bot.sendMessage(chatId, '✅ Ваш акаунт вже привʼязаний');
         }
-        await User.findByIdAndUpdate(userId, {
+        await User.findByIdAndUpdate(user._id, {
           telegramChatId: chatId,
           telegramUserId: msg.from.id,
           telegramLinked: true,
+          telegramLinkTokenHash: null,
+          telegramLinkTokenExpires: null,
         });
         bot.sendMessage(
           chatId,
@@ -55,10 +69,23 @@ if (token) {
 export const setupTelegramWebhook = async () => {
   if (!bot) return;
 
-  const webhookUrl = `${process.env.RENDER_EXTERNAL_URL}/api/telegram/webhook/${token}`;
+  if (!process.env.RENDER_EXTERNAL_URL || !encodedTelegramWebhookPathSecret) {
+    const message =
+      'Telegram webhook was not configured because public URL or webhook path secret is missing';
+    if (isProd) throw new Error(message);
+    console.warn(message);
+    return;
+  }
+
+  const baseUrl = process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '');
+  const webhookUrl = `${baseUrl}/api/telegram/webhook/${encodedTelegramWebhookPathSecret}`;
+  const webhookOptions = process.env.TELEGRAM_WEBHOOK_SECRET
+    ? { secret_token: process.env.TELEGRAM_WEBHOOK_SECRET }
+    : undefined;
+
   try {
-    await bot.setWebHook(webhookUrl);
-    console.log(`✅ Telegram webhook set up at: ${webhookUrl}`);
+    await bot.setWebHook(webhookUrl, webhookOptions);
+    console.log('✅ Telegram webhook set up');
   } catch (error) {
     console.error('❌ Failed to set Telegram webhook:', error.message);
   }

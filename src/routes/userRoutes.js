@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { celebrate } from 'celebrate';
 import { authenticate } from '../middleware/authenticate.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { updateProfileSchema } from '../validations/userValidation.js';
 import {
   getProfile,
   updateProfile,
@@ -103,7 +105,12 @@ const router = Router();
  *         description: User deleted successfully
  */
 router.get('/users/profile', authenticate, ctrlWrapper(getProfile));
-router.patch('/users/profile', authenticate, ctrlWrapper(updateProfile));
+router.patch(
+  '/users/profile',
+  authenticate,
+  celebrate(updateProfileSchema),
+  ctrlWrapper(updateProfile),
+);
 router.delete('/users/profile', authenticate, ctrlWrapper(deleteProfile));
 
 /**

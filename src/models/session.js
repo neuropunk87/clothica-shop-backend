@@ -7,13 +7,15 @@ const sessionSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    accessToken: {
+    accessTokenHash: {
       type: String,
       required: true,
+      select: false,
     },
-    refreshToken: {
+    refreshTokenHash: {
       type: String,
       required: true,
+      select: false,
     },
     accessTokenValidUntil: {
       type: Date,
@@ -29,5 +31,9 @@ const sessionSchema = new Schema(
     versionKey: false,
   },
 );
+
+sessionSchema.index({ userId: 1 });
+sessionSchema.index({ accessTokenHash: 1 });
+sessionSchema.index({ refreshTokenValidUntil: 1 }, { expireAfterSeconds: 0 });
 
 export const Session = model('Session', sessionSchema);
