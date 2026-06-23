@@ -64,6 +64,15 @@ const userSchema = new Schema(
     telegramChatId: { type: String, required: false, default: null },
     telegramUserId: { type: String, required: false, default: null },
     telegramLinked: { type: Boolean, required: false, default: false },
+    telegramLinkTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    telegramLinkTokenExpires: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       required: [true, 'Role is required'],
@@ -74,10 +83,22 @@ const userSchema = new Schema(
     passwordResetToken: {
       type: String,
       default: null,
+      select: false,
+    },
+    passwordResetTokenHash: {
+      type: String,
+      default: null,
+      select: false,
     },
     passwordResetTokenExpires: {
       type: Date,
       default: null,
+    },
+    passwordResetAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+      min: 0,
     },
   },
   {
@@ -89,7 +110,18 @@ const userSchema = new Schema(
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.passwordResetToken;
+  delete obj.passwordResetTokenHash;
+  delete obj.passwordResetTokenExpires;
+  delete obj.passwordResetAttempts;
+  delete obj.telegramLinkTokenHash;
+  delete obj.telegramLinkTokenExpires;
   return obj;
 };
+
+userSchema.index(
+  { telegramLinkTokenHash: 1 },
+  { partialFilterExpression: { telegramLinkTokenHash: { $type: 'string' } } },
+);
 
 export const User = model('User', userSchema);
