@@ -2,46 +2,63 @@ import { Joi, Segments } from 'celebrate';
 import { isValidObjectId } from 'mongoose';
 import { AVAILABLE_COLORS } from '../constants/colors.js';
 
+const VALID_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
 const objectIdValidator = (value, helpers) => {
   return !isValidObjectId(value) ? helpers.message('Invalid id format') : value;
 };
+
+const getCsvItems = (value) => {
+  const values = Array.isArray(value) ? value : [value];
+
+  return values
+    .flatMap((item) => String(item ?? '').split(','))
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const csvQueryValue = Joi.alternatives().try(
+  Joi.array().items(Joi.string().allow('')),
+  Joi.string().allow(''),
+);
+
+const createCsvEnumValidator = (allowedValues, label) =>
+  csvQueryValue.custom((value, helpers) => {
+    const items = getCsvItems(value);
+    if (items.length === 0) return '';
+
+    const invalidItems = items.filter((item) => !allowedValues.includes(item));
+    if (invalidItems.length > 0) {
+      return helpers.message(`Invalid ${label}: ${invalidItems.join(', ')}`);
+    }
+
+    return [...new Set(items)].join(',');
+  });
+
+const objectIdCsvValidator = csvQueryValue.custom((value, helpers) => {
+  const ids = getCsvItems(value);
+  if (ids.length === 0) return '';
+
+  const invalidIds = ids.filter((id) => !isValidObjectId(id));
+  if (invalidIds.length > 0) {
+    return helpers.message(`Invalid good IDs: ${invalidIds.join(', ')}`);
+  }
+
+  return [...new Set(ids)].join(',');
+});
 
 export const getGoodsSchema = {
   [Segments.QUERY]: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     perPage: Joi.number().integer().min(5).max(20).default(12),
     gender: Joi.string().valid('women', 'unisex', 'man'),
-    size: Joi.string().custom((value, helpers) => {
-      const sizes = value.split(',').map((s) => s.trim());
-      const validSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-      const invalidSizes = sizes.filter((s) => !validSizes.includes(s));
-      if (invalidSizes.length > 0) {
-        return helpers.error('any.invalid');
-      }
-      return value;
-    }),
-    good: Joi.string().custom((value, helpers) => {
-      const goodIds = value.split(',').map((id) => id.trim());
-      const invalidIds = goodIds.filter((id) => !isValidObjectId(id));
-
-      if (invalidIds.length > 0) {
-        return helpers.message(`Invalid good IDs: ${invalidIds.join(', ')}`);
-      }
-
-      return value;
-    }),
-    color: Joi.string().custom((value, helpers) => {
-      const colors = value.split(',').map((c) => c.trim());
-      const invalidColors = colors.filter((c) => !AVAILABLE_COLORS.includes(c));
-      if (invalidColors.length > 0) {
-        return helpers.error('any.invalid', {
-          details: `Invalid colors provided: ${invalidColors.join(', ')}`,
-        });
-      }
-      return value;
-    }),
-    minPrice: Joi.number().positive(),
-    maxPrice: Joi.number().positive(),
+    size: createCsvEnumValidator(VALID_SIZES, 'sizes'),
+    sizes: createCsvEnumValidator(VALID_SIZES, 'sizes'),
+    good: objectIdCsvValidator,
+    color: createCsvEnumValidator(AVAILABLE_COLORS, 'colors'),
+    colors: createCsvEnumValidator(AVAILABLE_COLORS, 'colors'),
+    minPrice: Joi.number().positive().empty(''),
+    maxPrice: Joi.number().positive().empty(''),
     name: Joi.string().trim().min(1).max(128),
     category: Joi.string().custom(objectIdValidator).trim().min(1),
     search: Joi.string().trim().max(128).allow(''),

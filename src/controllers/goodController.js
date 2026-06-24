@@ -1,26 +1,45 @@
 import { Good } from '../models/good.js';
 import createHttpError from 'http-errors';
+import mongoose from 'mongoose';
+
+const getCsvItems = (...values) =>
+  values
+    .filter((value) => value !== undefined && value !== null)
+    .flatMap((value) => (Array.isArray(value) ? value : [value]))
+    .flatMap((value) => String(value).split(','))
+    .map((value) => value.trim())
+    .filter(Boolean);
 
 const buildFilterQuery = (queryParams) => {
-  const { gender, size, good, color, minPrice, maxPrice, category, search } =
-    queryParams;
+  const {
+    gender,
+    size,
+    sizes,
+    good,
+    color,
+    colors,
+    minPrice,
+    maxPrice,
+    category,
+    search,
+  } = queryParams;
 
   const filterConditions = [];
+  const sizeFilters = getCsvItems(size, sizes);
+  const goodFilters = getCsvItems(good);
+  const colorFilters = getCsvItems(color, colors);
 
   if (gender) {
     filterConditions.push({ gender });
   }
-  if (size) {
-    const sizes = size.split(',').map((s) => s.trim());
-    filterConditions.push({ size: { $in: sizes } });
+  if (sizeFilters.length > 0) {
+    filterConditions.push({ size: mongoose.trusted({ $in: sizeFilters }) });
   }
-  if (good) {
-    const goods = good.split(',').map((g) => g.trim());
-    filterConditions.push({ _id: { $in: goods } });
+  if (goodFilters.length > 0) {
+    filterConditions.push({ _id: mongoose.trusted({ $in: goodFilters }) });
   }
-  if (color) {
-    const colors = color.split(',').map((c) => c.trim());
-    filterConditions.push({ colors: { $in: colors } });
+  if (colorFilters.length > 0) {
+    filterConditions.push({ colors: mongoose.trusted({ $in: colorFilters }) });
   }
   if (category) {
     filterConditions.push({ category });
@@ -29,10 +48,12 @@ const buildFilterQuery = (queryParams) => {
     const priceCondition = {};
     if (minPrice) priceCondition.$gte = Number(minPrice);
     if (maxPrice) priceCondition.$lte = Number(maxPrice);
-    filterConditions.push({ 'price.value': priceCondition });
+    filterConditions.push({
+      'price.value': mongoose.trusted(priceCondition),
+    });
   }
   if (search) {
-    filterConditions.push({ $text: { $search: search } });
+    filterConditions.push({ $text: mongoose.trusted({ $search: search }) });
   }
 
   return filterConditions.length > 0 ? { $and: filterConditions } : {};
@@ -45,6 +66,8 @@ const buildSortOrder = (sortBy, sortOrder) => {
     sortOrderObj['feedbackCount'] = -1;
     sortOrderObj['averageRate'] = -1;
     sortOrderObj['name'] = 1;
+  } else if (sortBy === 'price') {
+    sortOrderObj['price.value'] = order;
   } else {
     sortOrderObj[sortBy] = order;
   }

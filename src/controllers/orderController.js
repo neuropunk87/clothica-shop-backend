@@ -1,4 +1,5 @@
 import createHttpError from 'http-errors';
+import mongoose from 'mongoose';
 import { Order } from '../models/order.js';
 import { ORDER_STATUS } from '../constants/orderStatuses.js';
 import { User } from '../models/user.js';
@@ -9,7 +10,9 @@ export const createOrder = async (req, res, next) => {
 
   const existingUser = await User.findOne({ phone: userPhone });
   const goodIds = [...new Set(goods.map(({ goodId }) => goodId))];
-  const goodsFromDb = await Good.find({ _id: { $in: goodIds } })
+  const goodsFromDb = await Good.find({
+    _id: mongoose.trusted({ $in: goodIds }),
+  })
     .select('price.value size')
     .lean();
 
